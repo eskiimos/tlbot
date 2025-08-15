@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  telegramId   BigInt        @unique
+  username     String?
+  firstName    String
+  lastName     String?
+  language     String        @default("ru")
+  isBot        Boolean       @default(false)
+  isPremium    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  messages     Message[]
+  organization Organization?
+  sessions     Session[]
+
+  @@map("users")
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  contactName String
+  inn         String
+  phone       String
+  email       String?
+  userId      String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("organizations")
+}
+
+model Product {
+  id          String          @id @default(cuid())
+  name        String
+  slug        String          @unique
+  price       Int
+  images      String[]
+  description String?
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  priceTiers  PriceTier[]
+  options     ProductOption[]
+
+  @@map("products")
+}
+
+model PriceTier {
+  id          String   @id @default(cuid())
+  productId   String
+  minQuantity Int
+  maxQuantity Int?
+  price       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("price_tiers")
+}
+
+model ProductOption {
+  id          String   @id @default(cuid())
+  productId   String
+  category    String
+  name        String
+  price       Int
+  description String?
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_options")
+}
+
+model Message {
+  id         String      @id @default(cuid())
+  telegramId BigInt?
+  content    String
+  type       MessageType @default(TEXT)
+  userId     String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  data      Json
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model WebAppData {
+  id        String   @id @default(cuid())
+  userId    String
+  data      Json
+  createdAt DateTime @default(now())
+
+  @@map("webapp_data")
+}
+
+model BotSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bot_settings")
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  userId           String
+  telegramId       String
+  customerName     String
+  customerEmail    String?
+  customerPhone    String?
+  customerCompany  String?
+  customerInn      String?
+  items            Json
+  totalAmount      Int
+  status           OrderStatus @default(NEW)
+  proposalFilePath String?
+  adminComment     String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+enum MessageType {
+  TEXT
+  PHOTO
+  VIDEO
+  DOCUMENT
+  VOICE
+  STICKER
+  LOCATION
+  CONTACT
+  WEBAPP_DATA
+}
+
+enum OrderStatus {
+  NEW
+  IN_PROGRESS
+  DESIGN
+  PRODUCTION
+  READY
+  COMPLETED
+  CANCELLED
+}

@@ -49,6 +49,8 @@ export default function CartPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sendResult, setSendResult] = useState<{type: 'success' | 'error' | 'test', message: string} | null>(null);
+  const [showProposalModal, setShowProposalModal] = useState(false);
+  const [proposalStatus, setProposalStatus] = useState<'creating' | 'sending' | 'success' | 'error'>('creating');
   const [configExpanded, setConfigExpanded] = useState<{[id: string]: boolean}>({});
   // Track when cart has been loaded from localStorage to avoid wiping it on first render
   const [hasLoadedCart, setHasLoadedCart] = useState(false);
@@ -337,6 +339,13 @@ export default function CartPage() {
   };
 
   const handleSendProposal = async () => {
+    // Показываем модальное окно и начинаем процесс
+    setShowProposalModal(true);
+    setProposalStatus('creating');
+    
+    // Добавляем небольшую задержку для показа анимации
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     return handleSendProposalHTML(userData);
   };
 
@@ -360,8 +369,14 @@ export default function CartPage() {
     console.log("Начинаем отправку HTML КП в Telegram с данными:", userDataToUse);
     setIsSending(true);
     setSendResult(null);
+    setProposalStatus('creating');
     
     try {
+      // Добавляем задержку для демонстрации процесса создания
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setProposalStatus('sending');
+      
       // Отправляем данные через Telegram WebApp, если он доступен
       if (window.Telegram?.WebApp?.sendData) {
         try {
@@ -409,6 +424,14 @@ export default function CartPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Результат запроса:", result);
+        
+        setProposalStatus('success');
+        
+        // Показываем успех в течение 2 секунд, затем закрываем модальное окно
+        setTimeout(() => {
+          setShowProposalModal(false);
+          setProposalStatus('creating');
+        }, 2000);
         
         setSendResult({
           type: 'success', 
@@ -466,6 +489,7 @@ export default function CartPage() {
           errorMessage,
           detailedLogs
         );
+        setProposalStatus('error');
         setSendResult({type: 'error', message: `Ошибка при отправке: ${errorMessage}`});
       }
     } catch (error) {
@@ -485,6 +509,7 @@ export default function CartPage() {
         detailedLogs
       );
       
+      setProposalStatus('error');
       setSendResult({type: 'error', message: 'Произошла неожиданная ошибка. Попробуйте еще раз.'});
     } finally {
       setIsSending(false);
@@ -1447,6 +1472,81 @@ export default function CartPage() {
                   Закрыть
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно статуса создания КП */}
+      {showProposalModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-2xl">
+            <div className="text-center">
+              {proposalStatus === 'creating' && (
+                <>
+                  <div className="w-16 h-16 mx-auto mb-4 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Создаем коммерческое предложение</h3>
+                  <p className="text-gray-600">Подготавливаем документы и расчеты...</p>
+                </>
+              )}
+              
+              {proposalStatus === 'sending' && (
+                <>
+                  <div className="w-16 h-16 mx-auto mb-4 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Отправляем в Telegram</h3>
+                  <p className="text-gray-600">Передаем КП в чат бот...</p>
+                </>
+              )}
+              
+              {proposalStatus === 'success' && (
+                <>
+                  <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">КП успешно отправлено!</h3>
+                  <p className="text-gray-600 mb-4">Коммерческое предложение отправлено в чат бот. Проверьте Telegram.</p>
+                  <button
+                    onClick={() => {
+                      setShowProposalModal(false);
+                      setProposalStatus('creating');
+                    }}
+                    className="w-full py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    Отлично!
+                  </button>
+                </>
+              )}
+              
+              {proposalStatus === 'error' && (
+                <>
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Ошибка отправки</h3>
+                  <p className="text-gray-600 mb-4">Не удалось отправить КП. Попробуйте еще раз.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setShowProposalModal(false);
+                        setProposalStatus('creating');
+                      }}
+                      className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                    >
+                      Закрыть
+                    </button>
+                    <button
+                      onClick={() => handleSendProposal()}
+                      className="flex-1 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Повторить
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
