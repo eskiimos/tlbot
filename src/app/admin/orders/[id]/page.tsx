@@ -26,6 +26,14 @@ interface OrderItem {
   image?: string;
 }
 
+interface OrderComment {
+  id: string;
+  content: string;
+  isAdmin: boolean;
+  authorName?: string;
+  createdAt: string;
+}
+
 interface Order {
   id: string;
   customerName: string;
@@ -38,6 +46,7 @@ interface Order {
   adminComment?: string;
   createdAt: string;
   updatedAt: string;
+  comments?: OrderComment[];
   user?: {
     username: string;
     firstName: string;
@@ -72,6 +81,12 @@ export default function OrderDetails() {
   const [newStatus, setNewStatus] = useState('');
   const [adminComment, setAdminComment] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Состояние для системы комментариев
+  const [comments, setComments] = useState<OrderComment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [isAddingComment, setIsAddingComment] = useState(false);
+  
   const router = useRouter();
   const params = useParams();
 
@@ -107,6 +122,11 @@ export default function OrderDetails() {
         setOrder(data.order);
         setNewStatus(data.order.status);
         setAdminComment(data.order.adminComment || '');
+        
+        // Устанавливаем комментарии из ответа
+        if (data.order.comments) {
+          setComments(data.order.comments);
+        }
       } else {
         router.push('/admin/dashboard');
       }
@@ -149,8 +169,44 @@ export default function OrderDetails() {
     router.push('/admin');
   };
 
+  // Функция для добавления комментария
+  const addComment = async () => {
+    if (!order || !newComment.trim()) return;
+
+    setIsAddingComment(true);
+    try {
+      const response = await fetch(`/api/admin/orders/${order.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: newComment.trim()
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setComments(prev => [...prev, data.comment]);
+        setNewComment('');
+      }
+    } catch (error) {
+      console.error('Ошибка добавления комментария:', error);
+    } finally {
+      setIsAddingComment(false);
+    }
+  };
+
+  // Функция для форматирования даты
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('ru-RU');
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const formatPrice = (price: number | string) => {
@@ -443,6 +499,59 @@ export default function OrderDetails() {
                 <p className="text-sm text-yellow-700">{order.adminComment}</p>
               </div>
             )}
+
+            {/* Система комментариев */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">💬 Переписка по заказу</h3>
+              
+              {/* Список комментариев */}
+              <div className="space-y-4 mb-6">
+                {comments.length === 0 ? (
+                  <p className="text-gray-500 text-sm">Пока нет комментариев</p>
+                ) : (
+                  comments.map((comment) => (
+                    <div key={comment.id} className={`p-3 rounded-lg ${
+                      comment.isAdmin 
+                        ? 'bg-blue-50 border border-blue-200 ml-8' 
+                        : 'bg-gray-50 border border-gray-200 mr-8'
+                    }`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {comment.isAdmin ? `👨‍💼 ${comment.authorName || 'Администратор'}` : '👤 Клиент'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {formatDate(comment.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Форма для нового комментария */}
+              <div className="border-t border-gray-200 pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Добавить комментарий
+                </label>
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Введите комментарий..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  rows={3}
+                />
+                <div className="mt-3 flex justify-end">
+                  <button
+                    onClick={addComment}
+                    disabled={!newComment.trim() || isAddingComment}
+                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {isAddingComment ? 'Добавление...' : 'Добавить комментарий'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

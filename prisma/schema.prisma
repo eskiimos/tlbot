@@ -129,7 +129,7 @@ model BotSettings {
 }
 
 model Order {
-  id               String      @id @default(cuid())
+  id               String        @id @default(cuid())
   userId           String
   telegramId       String
   customerName     String
@@ -139,13 +139,26 @@ model Order {
   customerInn      String?
   items            Json
   totalAmount      Int
-  status           OrderStatus @default(NEW)
+  status           OrderStatus   @default(NEW)
   proposalFilePath String?
   adminComment     String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  comments         OrderComment[]
 
   @@map("orders")
+}
+
+model OrderComment {
+  id        String   @id @default(cuid())
+  orderId   String
+  content   String
+  isAdmin   Boolean  @default(false)
+  authorName String?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_comments")
 }
 
 model Admin {

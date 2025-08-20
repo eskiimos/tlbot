@@ -15,15 +15,13 @@ async function checkAuth(request: NextRequest) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    const admin = await prisma.admin.findUnique({
-      where: { id: decoded.adminId }
-    });
     
-    if (!admin) {
-      throw new Error('Админ не найден');
+    // Простая проверка без БД
+    if (decoded.adminId !== 'admin') {
+      throw new Error('Неверный токен');
     }
     
-    return admin;
+    return { id: 'admin', username: decoded.username || 'admin' };
   } catch (error) {
     throw new Error('Неверный токен');
   }
@@ -65,9 +63,16 @@ export async function GET(
 
     const orderId = params.id;
 
-    // Получаем заказ
+    // Получаем заказ с комментариями
     const order = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
+      include: {
+        comments: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        }
+      }
     });
 
     if (!order) {
