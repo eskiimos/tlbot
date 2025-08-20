@@ -33,7 +33,7 @@ export async function GET(
   try {
     await checkAuth(request);
 
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     let comments: any[] = [];
     try {
@@ -73,7 +73,7 @@ export async function POST(
       return NextResponse.json({ error: 'Комментарий не может быть пустым' }, { status: 400 });
     }
 
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     // Проверяем что заказ существует
     const order = await prisma.order.findUnique({

@@ -59,10 +59,10 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log('🔍 API: Получение заказа', params.id);
+    console.log('🔍 API: Получение заказа');
     await checkAuth(request);
 
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     // Сначала пробуем загрузить заказ без комментариев (для совместимости)
     let order;
@@ -144,7 +144,7 @@ export async function PATCH(
     await checkAuth(request);
 
     const { status, adminComment } = await request.json();
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     // Получаем текущий заказ
     const currentOrder = await prisma.order.findUnique({
