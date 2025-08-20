@@ -82,6 +82,10 @@ export default function CartPage() {
 
   // Средняя фиксированная цена за принт
   const PRINT_FLAT_PRICE = 300;
+  // Фиксированная цена за бирки
+  const LABEL_FLAT_PRICE = 50;
+  // Фиксированная цена за упаковку
+  const PACKAGING_FLAT_PRICE = 50;
 
   // Блокируем скролл фона при открытой модалке
   const anyModalOpen = !!showUserDataForm || (!!optionsModal.itemId && !!optionsModal.category) || errorModal.isOpen;
@@ -162,7 +166,6 @@ export default function CartPage() {
   function getOptionsPrice(item: CartItem): number {
     // Если подробная конфигурация выключена — не учитываем опции в цене
     if (!item.detailedProposal) return 0;
-    // Дизайн не влияет на цену (индивидуальный подход)
     return (item.optionsDetails || [])
       .filter(d => d.category !== 'design')
       .reduce((sum, d) => sum + Number(d.price || 0), 0);
@@ -826,8 +829,7 @@ export default function CartPage() {
   const toggleModalOption = (optionId: string) => {
     if (!optionsModal.category) return;
     setModalSelected(prev => {
-      const isSingle = optionsModal.category === 'design';
-      if (isSingle) return [optionId];
+      // Все категории теперь поддерживают множественный выбор
       return prev.includes(optionId) ? prev.filter(id => id !== optionId) : [...prev, optionId];
     });
   };
@@ -889,19 +891,41 @@ export default function CartPage() {
     localStorage.setItem('tlbot_cart', JSON.stringify(newCart));
   };
 
-  // Переключатель «Дизайн» (индивидуально, без доплаты)
-  const toggleDesign = (itemId: string, enable: boolean) => {
+  // Переключатель плоской опции бирок (+50₽ за единицу)
+  const toggleLabel = (itemId: string, enable: boolean) => {
     const item = cartItems.find(i => i.id === itemId);
     if (!item) return;
 
-    const updatedDetails = (item.optionsDetails || []).filter(o => o.category !== 'design');
+    const updatedDetails = (item.optionsDetails || []).filter(o => o.category !== 'label');
     if (enable) {
-      updatedDetails.push({ id: 'design-custom', name: 'Индивидуально', category: 'design', price: 0 });
+      updatedDetails.push({ id: 'label-flat', name: 'Бирки', category: 'label', price: LABEL_FLAT_PRICE });
     }
 
     const updatedItem: CartItem = {
       ...item,
-      selectedOptions: { ...item.selectedOptions, design: enable ? ['design-custom'] : [] },
+      selectedOptions: { ...item.selectedOptions, label: enable ? ['label-flat'] : [] },
+      optionsDetails: updatedDetails
+    };
+    updatedItem.totalPrice = computeLineTotal(updatedItem, updatedItem.quantity);
+
+    const newCart = cartItems.map(ci => ci.id === itemId ? updatedItem : ci);
+    setCartItems(newCart);
+    localStorage.setItem('tlbot_cart', JSON.stringify(newCart));
+  };
+
+  // Переключатель плоской опции упаковки (+50₽ за единицу)
+  const togglePackaging = (itemId: string, enable: boolean) => {
+    const item = cartItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    const updatedDetails = (item.optionsDetails || []).filter(o => o.category !== 'packaging');
+    if (enable) {
+      updatedDetails.push({ id: 'packaging-flat', name: 'Упаковка', category: 'packaging', price: PACKAGING_FLAT_PRICE });
+    }
+
+    const updatedItem: CartItem = {
+      ...item,
+      selectedOptions: { ...item.selectedOptions, packaging: enable ? ['packaging-flat'] : [] },
       optionsDetails: updatedDetails
     };
     updatedItem.totalPrice = computeLineTotal(updatedItem, updatedItem.quantity);
@@ -964,24 +988,111 @@ export default function CartPage() {
                 className="h-10 w-auto mx-auto"
               />
             </div>
-            <button 
-              onClick={() => {
-                // TODO: Переход в профиль
-                alert('Профиль - в разработке');
-              }}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <Image
-                src="/bx_user.svg"
-                alt="Профиль"
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Кнопка "Услуги" */}
+              <Link 
+                href="/?welcome=true"
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                title="Наши услуги"
+              >
+                <svg 
+                  width={24} 
+                  height={24} 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth={2}
+                  className="w-6 h-6 text-[#303030]"
+                >
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9,9h0a3,3,0,0,1,6,0c0,2-3,3-3,3"/>
+                  <path d="M12,17h0"/>
+                </svg>
+              </Link>
+              
+              {/* Кнопка профиля */}
+              <button 
+                onClick={() => {
+                  // TODO: Переход в профиль
+                  alert('Профиль - в разработке');
+                }}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <Image
+                  src="/bx_user.svg"
+                  alt="Профиль"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+              </button>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Индикатор выбранной услуги */}
+      {isMounted && (() => {
+        const selectedService = localStorage.getItem('tl_selected_service');
+        const designType = localStorage.getItem('tl_design_type');
+        
+        if (selectedService === 'production') {
+          return (
+            <div className="bg-gray-100 border-b border-gray-200">
+              <div className="max-w-md mx-auto px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium">Производство мерча</div>
+                    <div className="text-xs text-gray-600 mt-0.5">🛒 Настройте опции и отправьте КП</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        if (selectedService === 'design') {
+          const typeText = designType === 'single-item' ? 'Дизайн одного изделия' : 'Дизайн коллекции';
+          return (
+            <div className="bg-gray-100 border-b border-gray-200">
+              <div className="max-w-md mx-auto px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium">{typeText}</div>
+                    <div className="text-xs text-gray-600 mt-0.5">📞 Заявка отправлена, ожидайте звонка</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        if (selectedService === 'full-cycle') {
+          return (
+            <div className="bg-gray-100 border-b border-gray-200">
+              <div className="max-w-md mx-auto px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium">Дизайн + производство</div>
+                    <div className="text-xs text-gray-600 mt-0.5">📞 Ожидайте звонка для обсуждения проекта</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        return null;
+      })()}
 
       <div className="max-w-md mx-auto p-4">
         {/* Заголовок корзины */}
@@ -1010,7 +1121,13 @@ export default function CartPage() {
               Корзина пуста
             </h3>
             <p className="text-gray-600 mb-6">
-              Добавьте товары из каталога, чтобы начать оформление заказа
+              {(() => {
+                const selectedService = localStorage.getItem('tl_selected_service');
+                if (selectedService === 'production') {
+                  return 'Добавьте товары из каталога для расчёта стоимости производства';
+                }
+                return 'Добавьте товары из каталога, чтобы начать оформление заказа';
+              })()}
             </p>
             <Link
               href="/catalog"
@@ -1030,7 +1147,8 @@ export default function CartPage() {
                 const lineTotal = unitPrice * item.quantity;
                 const baseUnitPrice = getTierBasePrice(item.productSlug, item.quantity, item.basePrice);
                 const printEnabled = (item.optionsDetails || []).some(d => d.category === 'print');
-                const designEnabled = (item.optionsDetails || []).some(d => d.category === 'design');
+                const labelEnabled = (item.optionsDetails || []).some(d => d.category === 'label');
+                const packagingEnabled = (item.optionsDetails || []).some(d => d.category === 'packaging');
                 const hasLabels = (categorizedOptions.label?.length || 0) > 0;
                 const hasPackaging = (categorizedOptions.packaging?.length || 0) > 0;
 
@@ -1099,10 +1217,13 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    {/* Переключатель «Составить подробное КП» */}
+                    {/* Переключатель «Опции» */}
                     <div className="border-t border-gray-100 pt-3 mt-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-[#303030]">Составить подробное КП</span>
+                        <div>
+                          <span className="text-sm font-medium text-[#303030]">Добавьте опции</span>
+                          <p className="text-xs text-gray-500 mt-1">Принт | Бирки | Упаковка</p>
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
@@ -1118,7 +1239,7 @@ export default function CartPage() {
                             // Также обновляем состояние для UI конфигурации
                             setConfigExpanded(prev => ({ ...prev, [item.id]: !item.detailedProposal }));
                           }}
-                          className={`group w-10 h-6 rounded-full relative transition-colors duration-200 ease-out ${item.detailedProposal ? 'bg-green-500' : 'bg-gray-300'}`}
+                          className={`group w-10 h-6 rounded-full relative transition-colors duration-200 ease-out ${item.detailedProposal ? 'bg-gray-800' : 'bg-gray-300'}`}
                           role="switch"
                           aria-checked={!!item.detailedProposal}
                            aria-label="Переключить подробное КП"
@@ -1130,29 +1251,9 @@ export default function CartPage() {
 
                     {item.detailedProposal && (
                       <>
-                        {/* Конфигурация товара */}
+                        {/* Опции товара */}
                         <div className="space-y-3 border-t border-gray-100 pt-4 mt-3">
-                          <h4 className="text-sm font-medium text-gray-700">Конфигурация товара</h4>
                           {/* Цвет — скрыт */}
-                          {/* Дизайн */}
-                          <div className="w-full flex justify-between items-center text-sm py-2 px-2 rounded">
-                            <span className="text-gray-600">Дизайн</span>
-                            <div className="flex items-center gap-3">
-                              <span className="text-xs text-gray-500">
-                                {designEnabled ? 'Индивидуально' : 'Не выбрано'}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => toggleDesign(item.id, !designEnabled)}
-                                className={`group w-10 h-6 rounded-full relative transition-colors duration-200 ease-out ${designEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
-                                role="switch"
-                                aria-checked={designEnabled}
-                                 aria-label="Переключить дизайн"
-                               >
-                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ease-out ${designEnabled ? 'translate-x-4' : ''} group-active:scale-95`} />
-                               </button>
-                            </div>
-                          </div>
                           {/* Принт */}
                           <div className="w-full flex justify-between items-center text-sm py-2 px-2 rounded">
                             <span className="text-gray-600">Принт</span>
@@ -1163,7 +1264,7 @@ export default function CartPage() {
                               <button
                                 type="button"
                                 onClick={() => togglePrint(item.id, !printEnabled)}
-                                className={`group w-10 h-6 rounded-full relative transition-colors duration-200 ease-out ${printEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+                                className={`group w-10 h-6 rounded-full relative transition-colors duration-200 ease-out ${printEnabled ? 'bg-gray-800' : 'bg-gray-300'}`}
                                 role="switch"
                                 aria-checked={printEnabled}
                                  aria-label="Переключить принт"
@@ -1172,47 +1273,55 @@ export default function CartPage() {
                                </button>
                             </div>
                           </div>
-                          {/* Бирки (модалка) */}
-                          <button
-                            type="button"
-                            onClick={() => openOptionsModal(item.id, 'label')}
-                            className="w-full flex items-center justify-between text-sm py-2.5 px-3 rounded-md border border-gray-200 hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 cursor-pointer"
-                            aria-haspopup="dialog"
-                            aria-label="Открыть опции «Бирки»"
-                          >
+                          {/* Бирки */}
+                          <div className="w-full flex justify-between items-center text-sm py-2 px-2 rounded">
                             <span className="text-gray-600">Бирки</span>
-                            <span className="flex items-center gap-2">
-                              <span className={`${hasLabels ? 'font-medium text-[#303030]' : 'text-gray-500'} text-right`}>
-                                {hasLabels ? categorizedOptions.label.join(', ') : 'Без дополнительных элементов'}
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs text-gray-500">
+                                {labelEnabled ? `+${LABEL_FLAT_PRICE.toLocaleString('ru-RU')}₽` : 'Без бирок'}
                               </span>
-                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </span>
-                          </button>
-                           {/* Упаковка */}
-                          <button
-                            type="button"
-                            onClick={() => openOptionsModal(item.id, 'packaging')}
-                            className="w-full flex items-center justify-between text-sm py-2.5 px-3 rounded-md border border-gray-200 hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 cursor-pointer"
-                            aria-haspopup="dialog"
-                            aria-label="Открыть опции «Упаковка»"
-                          >
+                              <button
+                                type="button"
+                                onClick={() => toggleLabel(item.id, !labelEnabled)}
+                                className={`group w-10 h-6 rounded-full relative transition-colors duration-200 ease-out ${labelEnabled ? 'bg-gray-800' : 'bg-gray-300'}`}
+                                role="switch"
+                                aria-checked={labelEnabled}
+                                aria-label="Переключить бирки"
+                               >
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ease-out ${labelEnabled ? 'translate-x-4' : ''} group-active:scale-95`} />
+                               </button>
+                            </div>
+                          </div>
+                          {/* Упаковка */}
+                          <div className="w-full flex justify-between items-center text-sm py-2 px-2 rounded">
                             <span className="text-gray-600">Упаковка</span>
-                            <span className="flex items-center gap-2">
-                              <span className={`${hasPackaging ? 'font-medium text-[#303030]' : 'text-gray-500'} text-right`}>
-                                {hasPackaging ? categorizedOptions.packaging.join(', ') : 'Без дополнительных элементов'}
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs text-gray-500">
+                                {packagingEnabled ? `+${PACKAGING_FLAT_PRICE.toLocaleString('ru-RU')}₽` : 'Без упаковки'}
                               </span>
-                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </span>
-                          </button>
+                              <button
+                                type="button"
+                                onClick={() => togglePackaging(item.id, !packagingEnabled)}
+                                className={`group w-10 h-6 rounded-full relative transition-colors duration-200 ease-out ${packagingEnabled ? 'bg-gray-800' : 'bg-gray-300'}`}
+                                role="switch"
+                                aria-checked={packagingEnabled}
+                                aria-label="Переключить упаковку"
+                               >
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ease-out ${packagingEnabled ? 'translate-x-4' : ''} group-active:scale-95`} />
+                               </button>
+                            </div>
+                          </div>
                           
-                          {/* Итого по позиции */}
-                          <div className="flex justify-between items-center py-2 mt-2 border-t border-gray-200">
-                            <span className="text-sm text-gray-500">Итого за позицию</span>
-                            <span className="font-bold text-[#303030] text-lg">{lineTotal.toLocaleString('ru-RU')}₽</span>
+                          {/* Цена за единицу и общая сумма за позицию */}
+                          <div className="space-y-2 pt-2 mt-2 border-t border-gray-200">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-500">Цена за единицу</span>
+                              <span className="font-medium text-[#303030]">{unitPrice.toLocaleString('ru-RU')}₽</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-600">Общая сумма за позицию</span>
+                              <span className="font-bold text-[#303030] text-lg">{lineTotal.toLocaleString('ru-RU')}₽</span>
+                            </div>
                           </div>
                         </div>
                       </>
@@ -1245,7 +1354,7 @@ export default function CartPage() {
               {/* Статус данных пользователя */}
               {userData && (
                 <div className="mt-4 pt-3 border-t border-gray-100">
-                  <div className="flex items-center gap-2 text-sm text-green-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -1295,8 +1404,8 @@ export default function CartPage() {
                   <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121L9.864 13.63l-2.915-.918c-.636-.194-.648-.636.137-.942L17.926 7.08c.529-.194.99.123.824.73-.001.006-.002.012-.003.018z"/>
                 </svg>
                 {isSending 
-                  ? 'Отправляем в Telegram...' 
-                  : 'Отправить КП в Telegram'
+                  ? 'Отправляем КП...' 
+                  : 'Отправить КП'
                 }
               </button>
             </div>
@@ -1319,7 +1428,7 @@ export default function CartPage() {
                 
                 <button
                   onClick={undoDelete}
-                  className="bg-blue-500 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
+                  className="bg-gray-800 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-gray-900 transition-colors"
                 >
                   Отменить
                 </button>
@@ -1342,7 +1451,7 @@ export default function CartPage() {
             {/* Прогресс-бар */}
             <div className="mt-3 w-full bg-gray-700 rounded-full h-1">
               <div 
-                className="bg-blue-500 h-1 rounded-full transition-all duration-1000 ease-linear"
+                className="bg-gray-800 h-1 rounded-full transition-all duration-1000 ease-linear"
                 style={{ width: `${(timeLeft / 10) * 100}%` }}
               />
             </div>
@@ -1368,7 +1477,6 @@ export default function CartPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] overscroll-contain" onClick={closeOptionsModal}>
           <div className="bg-white rounded-lg w-full max-w-md p-4 shadow-2xl max-h-[90dvh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-base font-semibold text-[#303030] mb-3">
-              {optionsModal.category === 'design' && 'Дизайн'}
               {optionsModal.category === 'print' && 'Принт'}
               {optionsModal.category === 'label' && 'Бирки'}
               {optionsModal.category === 'packaging' && 'Упаковка'}
@@ -1384,7 +1492,6 @@ export default function CartPage() {
                   if (!productsBySlug[slugKey]?.optionsByCategory?.[optionsModal.category]) return null;
                   
                   const activeOptions = productsBySlug[slugKey].optionsByCategory[optionsModal.category].filter(o => o.isActive);
-                  const isSingle = optionsModal.category === 'design';
                   
                   if (activeOptions.length === 0) {
                     return <p className="text-sm text-gray-500">Опции отсутствуют</p>;
@@ -1393,14 +1500,13 @@ export default function CartPage() {
                   return activeOptions.map(opt => {
                     const checked = modalSelected.includes(opt.id);
                     return (
-                      <label key={opt.id} className={`flex items-center justify-between gap-3 p-2 rounded-md border ${checked ? 'border-green-300 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                      <label key={opt.id} className={`flex items-center justify-between gap-3 p-2 rounded-md border ${checked ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'}`}>
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-[#303030]">{opt.name}</span>
                           <span className="text-xs text-gray-500">{opt.price > 0 ? `+${opt.price.toLocaleString('ru-RU')}₽` : 'Бесплатно'}</span>
                         </div>
                         <input
-                          type={isSingle ? 'radio' : 'checkbox'}
-                          name={`opt-${optionsModal.category}`}
+                          type="checkbox"
                           checked={checked}
                           onChange={() => toggleModalOption(opt.id)}
                           className="w-5 h-5"
@@ -1500,8 +1606,8 @@ export default function CartPage() {
               
               {proposalStatus === 'success' && (
                 <>
-                  <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
@@ -1512,7 +1618,7 @@ export default function CartPage() {
                       setShowProposalModal(false);
                       setProposalStatus('creating');
                     }}
-                    className="w-full py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    className="w-full py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
                   >
                     Отлично!
                   </button>
@@ -1540,7 +1646,7 @@ export default function CartPage() {
                     </button>
                     <button
                       onClick={() => handleSendProposal()}
-                      className="flex-1 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      className="flex-1 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
                     >
                       Повторить
                     </button>

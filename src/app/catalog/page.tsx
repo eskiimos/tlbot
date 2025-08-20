@@ -5,6 +5,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 
+interface PriceTier {
+  id: string;
+  minQuantity: number;
+  maxQuantity: number | null;
+  price: number;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -12,6 +19,7 @@ interface Product {
   price: number;
   images: string[];
   description?: string;
+  priceTiers?: PriceTier[];
 }
 
 export default function Catalog() {
@@ -21,6 +29,7 @@ export default function Catalog() {
   const [viewMode, setViewMode] = useState<'single' | 'double'>('single'); // single = 1 в ряд, double = 2 в ряд
   const [cartItemsCount, setCartItemsCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [displayedProductsCount, setDisplayedProductsCount] = useState(6); // Показываем сначала 6 товаров
 
   // Функция для подсчета товаров в корзине
   const updateCartCount = () => {
@@ -137,26 +146,55 @@ export default function Catalog() {
       }
     };
   }, []);
+
+  // Сбрасываем счетчик отображаемых товаров при смене категории
+  useEffect(() => {
+    setDisplayedProductsCount(6);
+  }, [selectedCategory]);
   return (
     <div className="min-h-screen bg-[#f8f8f8]">
       {/* Хэдер с логотипом */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            {/* Иконка профиля слева */}
-            <Link 
-              href="/?edit=true"
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              title="Личный кабинет"
-            >
-              <Image
-                src="/bx_user.svg"
-                alt="Личный кабинет"
-                width={24}
-                height={24}
-                className="w-6 h-6 text-[#303030]"
-              />
-            </Link>
+            {/* Левая группа кнопок */}
+            <div className="flex items-center gap-2">
+              {/* Иконка профиля */}
+              <Link 
+                href="/?edit=true"
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                title="Личный кабинет"
+              >
+                <Image
+                  src="/bx_user.svg"
+                  alt="Личный кабинет"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6 text-[#303030]"
+                />
+              </Link>
+              
+              {/* Кнопка "Услуги" */}
+              <Link 
+                href="/?welcome=true"
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                title="Наши услуги"
+              >
+                <svg 
+                  width={24} 
+                  height={24} 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth={2}
+                  className="w-6 h-6 text-[#303030]"
+                >
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9,9h0a3,3,0,0,1,6,0c0,2-3,3-3,3"/>
+                  <path d="M12,17h0"/>
+                </svg>
+              </Link>
+            </div>
             
             {/* Логотип по центру */}
             <div className="flex justify-center">
@@ -194,13 +232,93 @@ export default function Catalog() {
         </div>
       </header>
 
+      {/* Индикатор выбранной услуги */}
+      {isMounted && (() => {
+        const selectedService = localStorage.getItem('tl_selected_service');
+        const designType = localStorage.getItem('tl_design_type');
+        
+        if (selectedService === 'production') {
+          return (
+            <div className="bg-gray-100 border-b border-gray-200">
+              <div className="max-w-md mx-auto px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium">Производство мерча</div>
+                    <div className="text-xs text-gray-600 mt-0.5">👆 Выберите необходимые товары из каталога</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        if (selectedService === 'design') {
+          const typeText = designType === 'single-item' ? 'Дизайн одного изделия (от 15 000 ₽)' : 'Дизайн коллекции (от 50 000 ₽)';
+          return (
+            <div className="bg-gray-100 border-b border-gray-200">
+              <div className="max-w-md mx-auto px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium">{typeText}</div>
+                    <div className="text-xs text-gray-600 mt-0.5">📞 Мы уже обрабатываем вашу заявку</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        if (selectedService === 'full-cycle') {
+          return (
+            <div className="bg-gray-100 border-b border-gray-200">
+              <div className="max-w-md mx-auto px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium">Дизайн + производство</div>
+                    <div className="text-xs text-gray-600 mt-0.5">📞 Ожидайте звонка для обсуждения проекта</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        return null;
+      })()}
+
       {/* Контент каталога */}
       <div className="max-w-md mx-auto p-4">
         {isLoading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#303030] mx-auto"></div>
-            <p className="text-gray-600 mt-4">Загружаем товары...</p>
-          </div>
+          <>
+            {/* Skeleton для кнопок категорий */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="h-9 bg-gray-200 rounded-full animate-pulse" style={{width: `${60 + i * 20}px`}}></div>
+              ))}
+            </div>
+            
+            {/* Skeleton для товаров */}
+            <div className="grid gap-4 grid-cols-1">
+              {[1,2,3,4,5,6].map(i => (
+                <div key={i} className="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                  <div className="aspect-square bg-gray-200"></div>
+                  <div className="p-4">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-6 bg-gray-200 rounded w-24"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <>
             {/* Удалено промо-сообщение с заголовком и плашкой */}
@@ -273,7 +391,7 @@ export default function Catalog() {
 
             {/* Сетка товаров */}
             <div className={`grid gap-4 ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              {filteredProducts.map((product) => (
+              {filteredProducts.slice(0, displayedProductsCount).map((product) => (
                 <ProductCard 
                   key={product.id} 
                   product={product} 
@@ -281,6 +399,18 @@ export default function Catalog() {
                 />
               ))}
             </div>
+
+            {/* Кнопка "Показать еще" */}
+            {filteredProducts.length > displayedProductsCount && (
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => setDisplayedProductsCount(prev => prev + 6)}
+                  className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Показать еще ({filteredProducts.length - displayedProductsCount} товаров)
+                </button>
+              </div>
+            )}
 
             {filteredProducts.length === 0 && products.length > 0 && (
               <div className="text-center py-12">

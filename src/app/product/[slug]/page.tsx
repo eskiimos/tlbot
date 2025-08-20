@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, TouchEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -48,6 +48,15 @@ export default function ProductPage() {
   const [showCartModal, setShowCartModal] = useState(false);
   const [cartItemsCount, setCartItemsCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  
+  // Touch слайдер состояния
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  
+  // Состояние для сворачивания блоков
+  const [showPriceTiers, setShowPriceTiers] = useState(false);
 
   // Функция для подсчета товаров в корзине
   const updateCartCount = () => {
@@ -94,6 +103,48 @@ export default function ProductPage() {
       }
     };
   }, []);
+
+  // Touch события для плавных свайпов
+  const handleTouchStart = (e: TouchEvent) => {
+    setTouchEnd(0);
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsDragging(true);
+    setDragOffset(0);
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!isDragging) return;
+    
+    const currentX = e.targetTouches[0].clientX;
+    const diff = currentX - touchStart;
+    
+    // Ограничиваем смещение для лучшего UX
+    const maxOffset = 100;
+    const limitedOffset = Math.max(-maxOffset, Math.min(maxOffset, diff));
+    
+    setDragOffset(limitedOffset);
+    setTouchEnd(currentX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && product && product.images.length > 1) {
+      nextImage();
+    } else if (isRightSwipe && product && product.images.length > 1) {
+      prevImage();
+    }
+    
+    // Сбрасываем состояние
+    setIsDragging(false);
+    setDragOffset(0);
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   // Функция для добавления товара в корзину
   const addToCart = () => {
@@ -537,84 +588,113 @@ export default function ProductPage() {
                 />
               </Link>
             </div>
-            <button 
-              onClick={() => {
-                router.push('/cart');
-              }}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors relative"
-            >
-              <Image
-                src="/teenyicons_bag-outline.svg"
-                alt="Корзина"
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
-              {isMounted && cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center min-w-[20px]">
-                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                </span>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Кнопка "Услуги" */}
+              <Link 
+                href="/?welcome=true"
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                title="Наши услуги"
+              >
+                <svg 
+                  width={24} 
+                  height={24} 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth={2}
+                  className="w-6 h-6 text-[#303030]"
+                >
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9,9h0a3,3,0,0,1,6,0c0,2-3,3-3,3"/>
+                  <path d="M12,17h0"/>
+                </svg>
+              </Link>
+              
+              {/* Кнопка корзины */}
+              <button 
+                onClick={() => {
+                  router.push('/cart');
+                }}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors relative"
+              >
+                <Image
+                  src="/teenyicons_bag-outline.svg"
+                  alt="Корзина"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+                {isMounted && cartItemsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center min-w-[20px]">
+                    {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-md mx-auto p-4">
-        {/* 1. Фото товара (слайдер) */}
-        <div className="bg-white rounded-lg overflow-hidden mb-6">
-          <div className="relative aspect-square bg-white">
-            {!imageError && currentImage ? (
-              <>
-                <Image
-                  src={currentImage}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  onError={() => setImageError(true)}
-                  sizes="(max-width: 768px) 100vw, 400px"
-                />
-                
-                {/* Кнопки навигации */}
-                {product.images.length > 1 && (
-                  <>
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 text-white p-2 rounded-full hover:bg-black/40 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </button>
-                    
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 text-white p-2 rounded-full hover:bg-black/40 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  </>
-                )}
-                
-                {/* Пагинация */}
-                {product.images.length > 1 && (
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2">
-                    {product.images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => goToImage(index)}
-                        className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                          index === currentImageIndex
-                            ? 'bg-white shadow-md'
-                            : 'bg-[#C4C4C4] hover:bg-white/80'
-                        }`}
-                      />
-                    ))}
+      {/* Индикатор выбранной услуги */}
+      {isMounted && (() => {
+        const selectedService = localStorage.getItem('tl_selected_service');
+        
+        if (selectedService === 'production') {
+          return (
+            <div className="bg-gray-100 border-b border-gray-200">
+              <div className="max-w-md mx-auto px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-gray-700">
+                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium">Производство мерча</div>
+                    <div className="text-xs text-gray-600 mt-0.5">📊 Выберите необходимое количество товара</div>
                   </div>
-                )}
-              </>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        return null;
+      })()}
+
+      <div className="max-w-md mx-auto p-4">
+        {/* 1. Фото товара (touch слайдер) */}
+        <div className="bg-white rounded-lg overflow-hidden mb-6">
+          <div 
+            className="relative aspect-square bg-white cursor-grab active:cursor-grabbing"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {!imageError && product.images.length > 0 ? (
+              <div 
+                className={`flex h-full ${isDragging ? '' : 'transition-transform duration-300'} ease-out`}
+                style={{ 
+                  transform: `translateX(calc(-${currentImageIndex * (100 / product.images.length)}% + ${dragOffset}px))`,
+                  width: `${product.images.length * 100}%`
+                }}
+              >
+                {product.images.map((image, index) => (
+                  <div 
+                    key={index} 
+                    className="flex-shrink-0 h-full relative"
+                    style={{ width: `${100 / product.images.length}%` }}
+                  >
+                    <Image
+                      src={image}
+                      alt={`${product.name} - изображение ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      onError={() => setImageError(true)}
+                      sizes="(max-width: 768px) 100vw, 400px"
+                      priority={index === 0}
+                    />
+                  </div>
+                ))}
+              </div>
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400">
                 <div className="text-center">
@@ -623,6 +703,24 @@ export default function ProductPage() {
                   </svg>
                   <p className="text-sm">Фото скоро</p>
                 </div>
+              </div>
+            )}
+                
+            {/* Пагинация с овальной активной точкой */}
+            {product.images.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1">
+                {product.images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToImage(index)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      index === currentImageIndex 
+                        ? 'w-6 bg-white shadow-md' 
+                        : 'w-2 bg-white/50'
+                    }`}
+                    aria-label={`Перейти к изображению ${index + 1}`}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -643,7 +741,7 @@ export default function ProductPage() {
           <p className="text-gray-500 text-sm mt-1">
             за единицу товара
             {activeTier && (
-              <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+              <span className="ml-2 text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
                 {activeTier.minQuantity}-{activeTier.maxQuantity || '∞'} шт
               </span>
             )}
@@ -652,37 +750,39 @@ export default function ProductPage() {
 
         {/* Ценовые уровни */}
         {product.priceTiers.length > 0 && (
-          <div className="bg-white rounded-lg p-3 shadow-sm mb-6">
-            <h3 className="text-base font-semibold text-[#303030] mb-3">
+          <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
+            <h3 className="text-lg font-semibold text-[#303030] mb-4">
               Ценовые уровни
             </h3>
             <div className="flex flex-wrap gap-2">
               {product.priceTiers.map((tier, index) => (
-                <div 
+                <button 
                   key={tier.id}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
+                  onClick={() => {
+                    setQuantity(tier.minQuantity);
+                  }}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                     activeTier?.id === tier.id 
-                      ? 'bg-green-500 text-white shadow-sm' 
+                      ? 'bg-gray-800 text-white shadow-sm' 
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  <span className="font-medium">
+                  <span>
                     {tier.minQuantity}-{tier.maxQuantity || '∞'} шт
                   </span>
                   <span className="text-xs opacity-75">•</span>
                   <span className="font-bold">
                     {tier.price.toLocaleString('ru-RU')}₽
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Количество заказа (единственный шаг) */}
+        {/* Количество заказа */}
         <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">1</span>
+          <div className="mb-3">
             <h3 className="text-base font-semibold text-[#303030]">Количество</h3>
           </div>
           <div className="flex items-center justify-between">
@@ -730,7 +830,7 @@ export default function ProductPage() {
               addToCart();
               setShowCartModal(true);
             }}
-            className="w-full py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
+            className="w-full py-3 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-colors"
           >
             В корзину
           </button>
@@ -739,12 +839,32 @@ export default function ProductPage() {
         {/* Описание товара */}
         {product.description && (
           <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
-            <h3 className="text-base font-semibold text-[#303030] mb-3">
-              Описание
+            <h3 className="text-lg font-semibold text-[#303030] mb-4">
+              Описание товара
             </h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              {product.description}
-            </p>
+            <div className="prose prose-sm max-w-none">
+              <div 
+                className="text-gray-700 leading-relaxed space-y-3"
+                dangerouslySetInnerHTML={{
+                  __html: product.description
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .split('\n')
+                    .map(line => {
+                      if (line.startsWith('• ')) {
+                        return `<li>${line.substring(2)}</li>`;
+                      }
+                      return line;
+                    })
+                    .join('\n')
+                    .replace(/(<li>.*<\/li>\n*)+/g, (match) => 
+                      `<ul class="list-disc list-inside space-y-1 ml-2">${match}</ul>`
+                    )
+                    .replace(/\n\n/g, '</p><p class="mt-3">')
+                    .replace(/^/, '<p>')
+                    .replace(/$/, '</p>')
+                }}
+              />
+            </div>
           </div>
         )}
 
@@ -780,8 +900,8 @@ export default function ProductPage() {
           >
             {/* Иконка успеха */}
             <div className="text-center mb-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
