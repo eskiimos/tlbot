@@ -110,7 +110,11 @@ export default function UserDataForm({ onSubmit, onCancel, initialData }: UserDa
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('tlbot_user_data', JSON.stringify(userData));
-        console.log('💾 Данные сохранены в localStorage');
+        console.log('💾 Данные сохранены в tlbot_user_data');
+        
+        // Также сохраняем в профиль для будущего использования
+        localStorage.setItem('userProfileData', JSON.stringify(userData));
+        console.log('👤 Данные сохранены в профиль пользователя');
       } catch (error) {
         console.error('Ошибка при сохранении данных пользователя:', error);
       }

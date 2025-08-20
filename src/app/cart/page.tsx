@@ -344,16 +344,61 @@ export default function CartPage() {
         }
         
         console.log('✅ Сформированные данные пользователя:', completeUserData);
+        
+        // Пытаемся объединить с сохраненными данными профиля
+        try {
+          const savedProfileData = localStorage.getItem('userProfileData');
+          if (savedProfileData) {
+            const profileData = JSON.parse(savedProfileData);
+            console.log('📝 Найдены сохраненные данные профиля:', profileData);
+            
+            // Объединяем данные: Telegram данные приоритетнее, профиль дополняет
+            completeUserData = {
+              ...profileData, // Сначала данные профиля
+              ...completeUserData, // Затем перезаписываем данными из Telegram
+              // Но телефон, email, компанию и ИНН берем из профиля, если есть
+              phoneNumber: profileData.phoneNumber || completeUserData.phoneNumber,
+              email: profileData.email || completeUserData.email,
+              companyName: profileData.companyName || completeUserData.companyName,
+              inn: profileData.inn || completeUserData.inn
+            };
+            console.log('🔄 Объединенные данные:', completeUserData);
+          }
+        } catch (profileError) {
+          console.error('❌ Ошибка объединения данных профиля:', profileError);
+        }
+        
         setUserData(completeUserData);
       } else {
         console.log('❌ Telegram WebApp недоступен, пробуем localStorage');
-        // Fallback - пытаемся загрузить из localStorage
+        // Fallback - пытаемся загрузить из localStorage или профиля
         const savedData = localStorage.getItem('tlbot_user_data');
+        const savedProfileData = localStorage.getItem('userProfileData');
+        
+        let fallbackUserData: UserData | null = null;
+        
         if (savedData) {
-          console.log('Данные найдены в localStorage:', savedData);
-          setUserData(JSON.parse(savedData));
+          console.log('Данные найдены в tlbot_user_data:', savedData);
+          fallbackUserData = JSON.parse(savedData);
+        }
+        
+        if (savedProfileData) {
+          console.log('Данные найдены в userProfileData:', savedProfileData);
+          const profileData = JSON.parse(savedProfileData);
+          
+          if (fallbackUserData) {
+            // Объединяем данные
+            fallbackUserData = { ...fallbackUserData, ...profileData };
+          } else {
+            fallbackUserData = profileData;
+          }
+        }
+        
+        if (fallbackUserData) {
+          console.log('📋 Итоговые fallback данные:', fallbackUserData);
+          setUserData(fallbackUserData);
         } else {
-          console.log('Данные в localStorage не найдены');
+          console.log('Данные пользователя не найдены нигде');
         }
       }
     } catch (error) {
@@ -364,6 +409,28 @@ export default function CartPage() {
   };
 
   const handleSendProposal = async () => {
+    // Пытаемся загрузить сохраненные данные профиля
+    if (typeof window !== 'undefined') {
+      try {
+        const savedProfileData = localStorage.getItem('userProfileData');
+        if (savedProfileData) {
+          const profileData = JSON.parse(savedProfileData);
+          console.log("Найдены сохраненные данные профиля:", profileData);
+          
+          // Объединяем данные профиля с данными из Telegram (если есть)
+          const mergedData = {
+            ...profileData,
+            telegramId: userData?.telegramId || profileData.telegramId,
+            username: userData?.username || profileData.username
+          };
+          
+          setUserData(mergedData);
+        }
+      } catch (error) {
+        console.error("Ошибка загрузки данных профиля:", error);
+      }
+    }
+    
     // Всегда показываем форму для подтверждения данных (особенно телефона)
     console.log("Показываем форму для ввода/подтверждения данных пользователя");
     setShowUserDataForm(true);
