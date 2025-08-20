@@ -360,35 +360,9 @@ export default function CartPage() {
   };
 
   const handleSendProposal = async () => {
-    // Проверяем наличие данных пользователя
-    if (!userData?.telegramId) {
-      console.log("Данные пользователя отсутствуют");
-      
-      // Показываем модальное окно с ошибкой
-      setShowProposalModal(true);
-      setProposalStatus('error');
-      setSendResult({
-        type: 'error', 
-        message: '❌ Не удалось определить получателя КП.\n\nДля получения коммерческого предложения:\n\n1️⃣ Откройте мини-приложение через Telegram бот\n2️⃣ Или заполните контактные данные для связи'
-      });
-      
-      // Автоматически закрываем модальное окно через 5 секунд и показываем форму данных
-      setTimeout(() => {
-        setShowProposalModal(false);
-        setShowUserDataForm(true);
-      }, 5000);
-      
-      return;
-    }
-    
-    // Показываем модальное окно и начинаем процесс
-    setShowProposalModal(true);
-    setProposalStatus('creating');
-    
-    // Добавляем небольшую задержку для показа анимации
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return handleSendProposalHTML(userData);
+    // Всегда показываем форму для подтверждения данных (особенно телефона)
+    console.log("Показываем форму для ввода/подтверждения данных пользователя");
+    setShowUserDataForm(true);
   };
 
   const handleSendProposalHTML = async (userDataToUse: UserData | null) => {
@@ -556,6 +530,13 @@ export default function CartPage() {
   };
 
   const handleSendProposalWithData = async (userDataToUse: UserData | null) => {
+    // Показываем модальное окно и начинаем процесс
+    setShowProposalModal(true);
+    setProposalStatus('creating');
+    
+    // Добавляем небольшую задержку для показа анимации
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     // Для локального тестирования создаем тестовые данные если их нет
     if (!userDataToUse?.telegramId) {
       console.log("Данные пользователя отсутствуют, создаем тестовые данные для локального тестирования");
@@ -626,6 +607,14 @@ export default function CartPage() {
         const result = await response.json();
         console.log("Результат запроса:", result);
         
+        setProposalStatus('success');
+        
+        // Показываем успех в течение 2 секунд, затем закрываем модальное окно
+        setTimeout(() => {
+          setShowProposalModal(false);
+          setProposalStatus('creating');
+        }, 2000);
+        
         if (result.mode === 'development') {
           setSendResult({
             type: 'test', 
@@ -695,6 +684,7 @@ export default function CartPage() {
           errorMessage,
           detailedLogs
         );
+        setProposalStatus('error');
         setSendResult({type: 'error', message: `Ошибка при отправке: ${errorMessage}`});
       }
     } catch (error) {
@@ -720,6 +710,7 @@ export default function CartPage() {
         errorLogs
       );
       
+      setProposalStatus('error');
       setSendResult({type: 'error', message: `Произошла ошибка при отправке: ${errorMessage}`});
     } finally {
       setIsSending(false);
