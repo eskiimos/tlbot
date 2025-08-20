@@ -239,7 +239,7 @@ export default function Catalog() {
         
         if (selectedService === 'production') {
           return (
-            <div className="bg-gray-100 border-b border-gray-200">
+            <div className="bg-gray-100 border-b border-gray-200 sticky top-0 z-10">
               <div className="max-w-md mx-auto px-4 py-3">
                 <div className="flex items-start gap-2 text-sm text-gray-700">
                   <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,7 +258,7 @@ export default function Catalog() {
         if (selectedService === 'design') {
           const typeText = designType === 'single-item' ? 'Дизайн одного изделия (от 15 000 ₽)' : 'Дизайн коллекции (от 50 000 ₽)';
           return (
-            <div className="bg-gray-100 border-b border-gray-200">
+            <div className="bg-gray-100 border-b border-gray-200 sticky top-0 z-10">
               <div className="max-w-md mx-auto px-4 py-3">
                 <div className="flex items-start gap-2 text-sm text-gray-700">
                   <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,7 +276,7 @@ export default function Catalog() {
         
         if (selectedService === 'full-cycle') {
           return (
-            <div className="bg-gray-100 border-b border-gray-200">
+            <div className="bg-gray-100 border-b border-gray-200 sticky top-0 z-10">
               <div className="max-w-md mx-auto px-4 py-3">
                 <div className="flex items-start gap-2 text-sm text-gray-700">
                   <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

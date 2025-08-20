@@ -285,6 +285,42 @@ function WelcomePageContent() {
                 </div>
               </button>
             </div>
+
+            {/* Разделитель */}
+            <div className="flex items-center gap-4 my-8">
+              <div className="flex-1 h-px bg-gray-200"></div>
+              <span className="text-sm text-gray-500">или</span>
+              <div className="flex-1 h-px bg-gray-200"></div>
+            </div>
+
+            {/* Просто посмотреть каталог */}
+            <button
+              onClick={() => {
+                localStorage.setItem('tl_has_visited', 'true');
+                // Очищаем все данные о выбранных услугах
+                localStorage.removeItem('tl_selected_service');
+                localStorage.removeItem('tl_design_type');
+                localStorage.removeItem('tl_category');
+                localStorage.removeItem('tl_has_brandbook');
+                router.push('/catalog');
+              }}
+              className="w-full p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-700 mb-1">Смотреть каталог</h3>
+                  <p className="text-sm text-gray-500">
+                    Я сам выберу товары и оформлю заказ
+                  </p>
+                </div>
+              </div>
+            </button>
           </div>
         )}
 
@@ -760,7 +796,14 @@ function WelcomePageContent() {
 
             <div className="space-y-3">
               <button
-                onClick={() => router.push('/catalog')}
+                onClick={() => {
+                  // Очищаем все данные о выбранных услугах
+                  localStorage.removeItem('tl_selected_service');
+                  localStorage.removeItem('tl_design_type');
+                  localStorage.removeItem('tl_category');
+                  localStorage.removeItem('tl_has_brandbook');
+                  router.push('/catalog');
+                }}
                 className="w-full bg-gray-800 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-gray-900 transition-all duration-200"
               >
                 Посмотреть каталог товаров

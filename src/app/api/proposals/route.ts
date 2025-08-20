@@ -3,6 +3,46 @@ import { Telegraf } from 'telegraf';
 import { Input } from 'telegraf';
 import { generateProposalHTML } from '@/lib/generateProposalHTML';
 
+const ADMIN_CHAT_ID = '6021853805'; // ID админа
+
+// Функция для отправки уведомления админу
+async function sendAdminNotification(bot: Telegraf, clientTelegramId: string, orderData: any, fileName: string) {
+  try {
+    const clientInfo = orderData.customerName ? `${orderData.customerName}` : 'Неизвестный';
+    const companyInfo = orderData.companyName ? ` (${orderData.companyName})` : '';
+    const totalItems = orderData.items?.length || 0;
+    const totalAmount = orderData.totalAmount || 'Не указано';
+    
+    const adminMessage = `🔔 <b>КП ОТПРАВЛЕНО КЛИЕНТУ</b>
+
+👤 <b>Клиент:</b> ${clientInfo}${companyInfo}
+📱 <b>Telegram ID:</b> <code>${clientTelegramId}</code>
+📧 <b>Email:</b> ${orderData.customerEmail || 'Не указан'}
+
+🛍 <b>Заказ:</b>
+• Товаров: ${totalItems} шт.
+• Сумма: ${totalAmount}₽
+
+📄 <b>Файл:</b> ${fileName}
+
+⏰ <b>Время:</b> ${new Date().toLocaleString('ru-RU')}
+
+💬 <b>Статус:</b> Ожидает ответа клиента
+🔄 <b>Действие:</b> Можно дублировать КП при необходимости
+
+#КП #отправлено #клиент`;
+
+    await bot.telegram.sendMessage(ADMIN_CHAT_ID, adminMessage, {
+      parse_mode: 'HTML'
+    });
+    
+    console.log('✅ Уведомление админу отправлено');
+  } catch (error) {
+    console.error('❌ Ошибка отправки уведомления админу:', error);
+    // Не прерываем основной процесс при ошибке уведомления админу
+  }
+}
+
 export async function POST(request: NextRequest) {
   console.log('🚀 API /api/proposals вызван');
   console.log('📍 Environment:', process.env.NODE_ENV);
@@ -101,6 +141,10 @@ export async function POST(request: NextRequest) {
       );
       
       console.log('✅ HTML документ отправлен');
+      
+      // Отправляем уведомление админу о том, что КП отправлено
+      await sendAdminNotification(bot, telegramId, orderData, fileName);
+      
       return NextResponse.json({ 
         message: 'HTML proposal sent successfully to Telegram',
         messageId: sentMessage.message_id

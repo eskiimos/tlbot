@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const ADMIN_CHAT_ID = '6021853805'; // ID админа
+
 export async function POST(request: NextRequest) {
   try {
     const orderData = await request.json();
@@ -7,17 +9,23 @@ export async function POST(request: NextRequest) {
     // Логируем данные заказа
     console.log('Получен заказ на дизайн:', orderData);
     
-    // Формируем сообщение для отправки в Telegram
-    const message = formatOrderMessage(orderData);
-    console.log('Сформированное сообщение:', message);
-    
-    // Отправляем уведомление в Telegram (если есть токен бота)
+    // Отправляем уведомления в Telegram (если есть токен бота)
     let telegramSent = false;
     if (process.env.TELEGRAM_BOT_TOKEN) {
       try {
-        await sendTelegramMessage(message, orderData.user);
+        // Отправляем админу техническое уведомление
+        const adminMessage = formatAdminMessage(orderData);
+        await sendTelegramMessage(adminMessage, ADMIN_CHAT_ID);
+        
+        // Отправляем клиенту клиентоориентированное сообщение
+        const clientMessage = formatClientMessage(orderData);
+        const clientChatId = orderData.user?.id?.toString();
+        if (clientChatId) {
+          await sendTelegramMessage(clientMessage, clientChatId);
+        }
+        
         telegramSent = true;
-        console.log('Уведомление отправлено в Telegram');
+        console.log('Уведомления отправлены в Telegram (админу и клиенту)');
       } catch (telegramError) {
         console.error('Ошибка отправки в Telegram:', telegramError);
         // Не останавливаем процесс, если Telegram недоступен
@@ -90,10 +98,77 @@ ${userInfo}
 #дизайн #заявка #новый_заказ`;
 }
 
-async function sendTelegramMessage(message: string, user: any) {
+function formatAdminMessage(orderData: any) {
+  const { orderNumber, designType, category, brandbook, user } = orderData;
+  
+  const designTypeText = designType === 'single-item' 
+    ? '🎨 Дизайн одного изделия (от 15,000 ₽)' 
+    : '🎨 Дизайн коллекции (от 50,000 ₽)';
+    
+  const categoryText = category === 'clothing' 
+    ? '👕 Одежда' 
+    : category === 'accessories' 
+    ? '🎒 Аксессуары' 
+    : '📦 Все категории';
+    
+  const brandbookText = brandbook === 'yes' 
+    ? '✅ Есть готовый' 
+    : brandbook === 'partial' 
+    ? '⚠️ Частично готов' 
+    : '🆕 Создаём с нуля';
+
+  const userInfo = user 
+    ? `👤 <b>Клиент:</b> ${user.first_name} ${user.last_name || ''} ${user.username ? `(@${user.username})` : ''}`
+    : '👤 <b>Клиент:</b> Анонимный пользователь';
+
+  return `🚀 <b>НОВАЯ ЗАЯВКА НА ДИЗАЙН</b>
+
+📋 <b>Номер заказа:</b> <code>${orderNumber}</code>
+
+${userInfo}
+
+🛍 <b>Детали заказа:</b>
+• ${designTypeText}
+• ${categoryText}  
+• <b>Брендбук:</b> ${brandbookText}
+
+⏰ <b>Время:</b> ${new Date().toLocaleString('ru-RU')}
+🌐 <b>Источник:</b> Веб-приложение
+
+<i>Требуется связаться с клиентом в течение часа</i>
+
+#дизайн #заявка #новый_заказ`;
+}
+
+function formatClientMessage(orderData: any) {
+  const { orderNumber, designType, user } = orderData;
+  
+  const designTypeText = designType === 'single-item' 
+    ? 'дизайн одного изделия' 
+    : 'дизайн коллекции';
+
+  const userName = user?.first_name || 'Клиент';
+
+  return `✅ <b>Ваша заявка принята!</b>
+
+Здравствуйте, ${userName}! 
+
+Мы получили вашу заявку на <b>${designTypeText}</b>
+📋 <b>Номер заказа:</b> <code>${orderNumber}</code>
+
+🎯 <b>Что дальше:</b>
+• Наш персональный менеджер @zelenayaaliya свяжется с вами в течение часа
+• Обсудим детали проекта и составим техническое задание  
+• Подготовим для вас коммерческое предложение
+
+💬 <b>Есть вопросы?</b> Пишите @zelenayaaliya
+
+Спасибо за доверие! 🚀`;
+}
+
+async function sendTelegramMessage(message: string, chatId: string) {
   try {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID || user?.id;
     
     if (!botToken || !chatId) {
       console.log('Не настроены параметры Telegram бота');
