@@ -297,14 +297,17 @@ export default function CartPage() {
       // Проверяем, доступен ли Telegram WebApp
       if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
         const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-        console.log('Telegram пользователь найден:', tgUser);
+        console.log('🟢 Telegram пользователь найден:', tgUser);
+        console.log('🆔 Telegram ID:', tgUser.id);
         setIsLoadingUserData(true);
         
         // Получаем данные пользователя из API
         const response = await fetch(`/api/users?telegramId=${tgUser.id}`);
+        console.log('📡 API response status:', response.status);
+        
         if (response.ok) {
           const apiUserData = await response.json();
-          console.log('Данные из API:', apiUserData);
+          console.log('✅ Данные из API:', apiUserData);
           
           // Формируем объект данных пользователя
           const completeUserData: UserData = {
@@ -318,13 +321,13 @@ export default function CartPage() {
             inn: apiUserData?.organization?.inn
           };
           
-          console.log('Сформированные данные пользователя:', completeUserData);
+          console.log('✅ Сформированные данные пользователя:', completeUserData);
           setUserData(completeUserData);
         } else {
-          console.log('API вернул ошибку:', response.status);
+          console.log('❌ API вернул ошибку:', response.status);
         }
       } else {
-        console.log('Telegram WebApp недоступен, пробуем localStorage');
+        console.log('❌ Telegram WebApp недоступен, пробуем localStorage');
         // Fallback - пытаемся загрузить из localStorage
         const savedData = localStorage.getItem('tlbot_user_data');
         if (savedData) {
@@ -342,6 +345,27 @@ export default function CartPage() {
   };
 
   const handleSendProposal = async () => {
+    // Проверяем наличие данных пользователя
+    if (!userData?.telegramId) {
+      console.log("Данные пользователя отсутствуют");
+      
+      // Показываем модальное окно с ошибкой
+      setShowProposalModal(true);
+      setProposalStatus('error');
+      setSendResult({
+        type: 'error', 
+        message: '❌ Не удалось определить получателя КП.\n\nДля получения коммерческого предложения:\n\n1️⃣ Откройте мини-приложение через Telegram бот\n2️⃣ Или заполните контактные данные для связи'
+      });
+      
+      // Автоматически закрываем модальное окно через 5 секунд и показываем форму данных
+      setTimeout(() => {
+        setShowProposalModal(false);
+        setShowUserDataForm(true);
+      }, 5000);
+      
+      return;
+    }
+    
     // Показываем модальное окно и начинаем процесс
     setShowProposalModal(true);
     setProposalStatus('creating');
@@ -353,23 +377,19 @@ export default function CartPage() {
   };
 
   const handleSendProposalHTML = async (userDataToUse: UserData | null) => {
-    // Для локального тестирования создаем тестовые данные если их нет
+    console.log("Начинаем отправку HTML КП с данными:", userDataToUse);
+    
+    // Проверяем наличие данных пользователя
     if (!userDataToUse?.telegramId) {
-      console.log("Данные пользователя отсутствуют, создаем тестовые данные для локального тестирования");
-      userDataToUse = {
-        telegramId: '228594178', // Ваш реальный Telegram ID для тестирования
-        username: 'test_user',
-        firstName: 'Тест',
-        lastName: 'Пользователь',
-        phoneNumber: '+7 (900) 123-45-67',
-        email: 'test@example.com',
-        companyName: 'Тестовая компания',
-        inn: '1234567890'
-      };
-      console.log("Созданы тестовые данные:", userDataToUse);
+      console.error("Ошибка: данные пользователя отсутствуют");
+      setProposalStatus('error');
+      setSendResult({
+        type: 'error', 
+        message: '❌ Не удалось определить получателя. Пожалуйста, откройте мини-приложение через Telegram бот.'
+      });
+      return;
     }
 
-    console.log("Начинаем отправку HTML КП в Telegram с данными:", userDataToUse);
     setIsSending(true);
     setSendResult(null);
     setProposalStatus('creating');
