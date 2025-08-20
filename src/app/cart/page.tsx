@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import UserDataForm from '@/components/UserDataForm';
+import ProfileModal from '@/components/ProfileModal';
 
 interface CartItem {
   id: string;
@@ -43,6 +44,7 @@ export default function CartPage() {
   const [undoTimer, setUndoTimer] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(10);
   const [showUserDataForm, setShowUserDataForm] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
@@ -88,7 +90,7 @@ export default function CartPage() {
   const PACKAGING_FLAT_PRICE = 50;
 
   // Блокируем скролл фона при открытой модалке
-  const anyModalOpen = !!showUserDataForm || (!!optionsModal.itemId && !!optionsModal.category) || errorModal.isOpen;
+  const anyModalOpen = !!showUserDataForm || !!showProfileModal || (!!optionsModal.itemId && !!optionsModal.category) || errorModal.isOpen;
   useEffect(() => {
     if (anyModalOpen) {
       document.body.style.overflow = 'hidden';
@@ -111,6 +113,8 @@ export default function CartPage() {
           setErrorModal(prev => ({ ...prev, isOpen: false }));
         } else if (showUserDataForm) {
           setShowUserDataForm(false);
+        } else if (showProfileModal) {
+          setShowProfileModal(false);
         } else if (optionsModal.itemId && optionsModal.category) {
           setOptionsModal({ itemId: null, category: null });
         }
@@ -124,7 +128,7 @@ export default function CartPage() {
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [anyModalOpen, errorModal.isOpen, showUserDataForm, optionsModal.itemId, optionsModal.category]);
+  }, [anyModalOpen, errorModal.isOpen, showUserDataForm, showProfileModal, optionsModal.itemId, optionsModal.category]);
 
   // Помощники расчётов и представления
   function getTierBasePrice(productSlug: string, quantity: number, fallbackBase: number): number {
@@ -741,6 +745,12 @@ export default function CartPage() {
     }
   };
 
+  // Обработчик сохранения данных профиля
+  const handleProfileSave = (data: UserData) => {
+    setUserData(data);
+    console.log('Данные профиля сохранены:', data);
+  };
+
   // Таймер для отмены удаления
   useEffect(() => {
     if (undoTimer) {
@@ -1041,10 +1051,10 @@ export default function CartPage() {
               {/* Кнопка профиля */}
               <button 
                 onClick={() => {
-                  // TODO: Переход в профиль
-                  alert('Профиль - в разработке');
+                  setShowProfileModal(true);
                 }}
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                title="Профиль и настройки"
               >
                 <Image
                   src="/bx_user.svg"
@@ -1499,6 +1509,14 @@ export default function CartPage() {
           </div>
         </div>
       )}
+
+      {/* Модальное окно профиля */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        userData={userData}
+        onSave={handleProfileSave}
+      />
 
       {/* Модальное окно выбора опций */}
       {optionsModal.itemId && optionsModal.category && (

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
+import ProfileModal from '@/components/ProfileModal';
 
 interface PriceTier {
   id: string;
@@ -22,6 +23,17 @@ interface Product {
   priceTiers?: PriceTier[];
 }
 
+interface UserData {
+  telegramId?: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  email?: string;
+  companyName?: string;
+  inn?: string;
+}
+
 export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +42,8 @@ export default function Catalog() {
   const [cartItemsCount, setCartItemsCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const [displayedProductsCount, setDisplayedProductsCount] = useState(6); // Показываем сначала 6 товаров
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   // Функция для подсчета товаров в корзине
   const updateCartCount = () => {
@@ -151,6 +165,28 @@ export default function Catalog() {
   useEffect(() => {
     setDisplayedProductsCount(6);
   }, [selectedCategory]);
+
+  // Загружаем данные пользователя
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Пытаемся получить данные из Telegram WebApp
+      if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+        const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+        setUserData({
+          telegramId: tgUser.id?.toString(),
+          username: tgUser.username,
+          firstName: tgUser.first_name,
+          lastName: tgUser.last_name
+        });
+      }
+    }
+  }, []);
+
+  // Обработчик сохранения данных профиля
+  const handleProfileSave = (data: UserData) => {
+    setUserData(data);
+    console.log('Данные профиля сохранены в каталоге:', data);
+  };
   return (
     <div className="min-h-screen bg-[#f8f8f8]">
       {/* Хэдер с логотипом */}
@@ -160,10 +196,10 @@ export default function Catalog() {
             {/* Левая группа кнопок */}
             <div className="flex items-center gap-2">
               {/* Иконка профиля */}
-              <Link 
-                href="/?edit=true"
+              <button 
+                onClick={() => setShowProfileModal(true)}
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                title="Личный кабинет"
+                title="Профиль и настройки"
               >
                 <Image
                   src="/bx_user.svg"
@@ -172,7 +208,7 @@ export default function Catalog() {
                   height={24}
                   className="w-6 h-6 text-[#303030]"
                 />
-              </Link>
+              </button>
               
               {/* Кнопка "Услуги" */}
               <Link 
@@ -442,6 +478,14 @@ export default function Catalog() {
       >
         Total Lookas
       </div>
+
+      {/* Модальное окно профиля */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        userData={userData}
+        onSave={handleProfileSave}
+      />
     </div>
   );
 }
