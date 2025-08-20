@@ -254,7 +254,7 @@ export function generateProposalHTML(data: ProposalData): string {
                   <strong>Количество:</strong> ${item.quantity} шт.
                 </div>
                 <div class="option-group">
-                  <strong>Цена за единицу:</strong> ${item.basePrice.toLocaleString('ru-RU')} ₽
+                  <strong>Цена за единицу:</strong> ${Math.round(item.totalPrice / item.quantity).toLocaleString('ru-RU')} ₽
                 </div>
                 ${formatItemOptions(item.selectedOptions, item.detailedProposal || false, item.optionsDetails)}
               </div>

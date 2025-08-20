@@ -111,7 +111,10 @@ export default function AdminDashboard() {
   };
 
   const formatPrice = (price: number) => {
-    return (price / 100).toLocaleString('ru-RU', {
+    // Автоматически определяем формат цены
+    // Если цена больше 100000, вероятно она в копейках (старые данные)
+    const actualPrice = price > 100000 ? price / 100 : price;
+    return actualPrice.toLocaleString('ru-RU', {
       style: 'currency',
       currency: 'RUB'
     });

@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
           customerCompany: orderData.customerCompany || null,
           customerInn: orderData.customerInn || null,
           items: orderData.items || [],
-          totalAmount: Math.round((orderData.totalAmount || 0) * 100), // Конвертируем в копейки
+          totalAmount: Math.round(orderData.totalAmount || 0), // Сохраняем в рублях
           status: 'NEW'
         }
       });
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
           customerCompany: orderData.customerCompany || null,
           customerInn: orderData.customerInn || null,
           items: orderData.items || [],
-          totalAmount: Math.round((orderData.totalAmount || 0) * 100), // Конвертируем в копейки
+          totalAmount: Math.round(orderData.totalAmount || 0), // Сохраняем в рублях
           status: 'NEW'
         }
       });

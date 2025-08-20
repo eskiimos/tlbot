@@ -262,7 +262,13 @@ export default function OrderDetails() {
     if (isNaN(numPrice)) {
       return '0 ₽';
     }
-    return `${numPrice.toLocaleString('ru-RU')} ₽`;
+    // Автоматически определяем формат цены
+    // Если цена больше 100000, вероятно она в копейках (старые данные)
+    const actualPrice = numPrice > 100000 ? numPrice / 100 : numPrice;
+    return actualPrice.toLocaleString('ru-RU', {
+      style: 'currency',
+      currency: 'RUB'
+    });
   };
 
   if (!isMounted || isLoading) {
@@ -536,6 +542,10 @@ export default function OrderDetails() {
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Количество товаров</dt>
                   <dd className="mt-1 text-sm text-gray-900">{order.items.length} позиц{order.items.length === 1 ? 'ия' : 'ии'}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Общая сумма</dt>
+                  <dd className="mt-1 text-lg font-bold text-gray-900">{formatPrice(order.totalAmount)}</dd>
                 </div>
               </dl>
             </div>
