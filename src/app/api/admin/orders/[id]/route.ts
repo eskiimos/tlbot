@@ -59,25 +59,39 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('🔍 API: Получение заказа', params.id);
     await checkAuth(request);
 
     const orderId = params.id;
 
-    // Получаем заказ с комментариями
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        comments: {
-          orderBy: {
-            createdAt: 'asc'
+    // Сначала пробуем загрузить заказ без комментариев (для совместимости)
+    let order;
+    try {
+      // Получаем заказ с комментариями
+      order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          comments: {
+            orderBy: {
+              createdAt: 'asc'
+            }
           }
         }
-      }
-    });
+      });
+    } catch (commentsError) {
+      console.warn('⚠️ Не удалось загрузить комментарии, загружаем заказ без них:', commentsError);
+      // Fallback: загружаем заказ без комментариев
+      order = await prisma.order.findUnique({
+        where: { id: orderId }
+      });
+    }
 
     if (!order) {
+      console.log('❌ Заказ не найден:', orderId);
       return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
     }
+
+    console.log('✅ Заказ найден:', orderId);
 
     // Получаем информацию о пользователе отдельно
     let userData = null;
@@ -108,11 +122,16 @@ export async function GET(
     console.log('🔍 Order data for debugging:', JSON.stringify(orderData, null, 2));
     console.log('🛍️ Order items:', orderData.items);
 
+    console.log('📦 Возвращаем данные заказа:', orderId);
     return NextResponse.json({ order: orderData });
   } catch (error) {
-    console.error('Ошибка получения заказа:', error);
+    console.error('💥 Ошибка получения заказа:', error);
+    console.error('💥 Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+    
     const message = error instanceof Error ? error.message : 'Ошибка сервера';
     const status = message.includes('авторизован') || message.includes('токен') ? 401 : 500;
+    
+    console.error(`💥 Возвращаем ошибку ${status}:`, message);
     return NextResponse.json({ error: message }, { status });
   }
 }

@@ -105,20 +105,31 @@ export default function OrderDetails() {
 
   const checkAuth = async () => {
     try {
+      console.log('🔐 Проверка авторизации...');
       const response = await fetch('/api/admin/auth');
+      console.log('🔐 Статус авторизации:', response.status);
+      
       if (!response.ok) {
+        console.log('❌ Не авторизован, редирект на /admin');
         router.push('/admin');
+      } else {
+        console.log('✅ Авторизация успешна');
       }
     } catch (error) {
+      console.error('💥 Ошибка проверки авторизации:', error);
       router.push('/admin');
     }
   };
 
   const loadOrder = async (orderId: string) => {
     try {
+      console.log('🔄 Загрузка заказа:', orderId);
       const response = await fetch(`/api/admin/orders/${orderId}`);
+      console.log('📡 Ответ API:', response.status, response.statusText);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('📦 Данные заказа получены:', data);
         setOrder(data.order);
         setNewStatus(data.order.status);
         setAdminComment(data.order.adminComment || '');
@@ -128,10 +139,13 @@ export default function OrderDetails() {
           setComments(data.order.comments);
         }
       } else {
+        console.error('❌ Ошибка API:', response.status, response.statusText);
+        const errorData = await response.text();
+        console.error('❌ Детали ошибки:', errorData);
         router.push('/admin/dashboard');
       }
     } catch (error) {
-      console.error('Ошибка загрузки заказа:', error);
+      console.error('💥 Исключение при загрузке заказа:', error);
       router.push('/admin/dashboard');
     } finally {
       setIsLoading(false);

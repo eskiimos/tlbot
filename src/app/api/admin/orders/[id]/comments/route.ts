@@ -35,15 +35,21 @@ export async function GET(
 
     const orderId = params.id;
 
-    const comments = await prisma.orderComment.findMany({
-      where: { orderId },
-      orderBy: { createdAt: 'asc' }
-    });
+    let comments: any[] = [];
+    try {
+      comments = await prisma.orderComment.findMany({
+        where: { orderId },
+        orderBy: { createdAt: 'asc' }
+      });
+    } catch (dbError) {
+      console.warn('⚠️ Таблица комментариев недоступна, возвращаем пустой массив:', dbError);
+      comments = [];
+    }
 
     return NextResponse.json({
       comments: comments.map(comment => ({
         ...comment,
-        createdAt: comment.createdAt.toISOString()
+        createdAt: comment.createdAt ? comment.createdAt.toISOString() : new Date().toISOString()
       }))
     });
   } catch (error) {
@@ -79,15 +85,23 @@ export async function POST(
       return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
     }
 
-    // Создаем комментарий
-    const comment = await prisma.orderComment.create({
-      data: {
-        orderId,
-        content: content.trim(),
-        isAdmin: true,
-        authorName: admin.username
-      }
-    });
+    // Создаем комментарий только если таблица существует
+    let comment;
+    try {
+      comment = await prisma.orderComment.create({
+        data: {
+          orderId,
+          content: content.trim(),
+          isAdmin: true,
+          authorName: admin.username
+        }
+      });
+    } catch (dbError) {
+      console.warn('⚠️ Не удалось создать комментарий, таблица недоступна:', dbError);
+      return NextResponse.json({ 
+        error: 'Система комментариев временно недоступна' 
+      }, { status: 503 });
+    }
 
     return NextResponse.json({
       message: 'Комментарий добавлен',
