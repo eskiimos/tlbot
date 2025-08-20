@@ -12,11 +12,16 @@ async function sendAdminNotification(bot: Telegraf, clientTelegramId: string, or
     const companyInfo = orderData.companyName ? ` (${orderData.companyName})` : '';
     const totalItems = orderData.items?.length || 0;
     const totalAmount = orderData.totalAmount || 'Не указано';
+    const phoneNumber = orderData.customerPhone || 'Не указан';
+    const username = orderData.customerUsername ? `@${orderData.customerUsername}` : 'Не указан';
+    const inn = orderData.customerInn || 'Не указан';
     
     const adminMessage = `🔔 <b>КП ОТПРАВЛЕНО КЛИЕНТУ</b>
 
 👤 <b>Клиент:</b> ${clientInfo}${companyInfo}
-📱 <b>Telegram ID:</b> <code>${clientTelegramId}</code>
+📱 <b>Telegram:</b> ${username} (ID: <code>${clientTelegramId}</code>)
+📞 <b>Телефон:</b> ${phoneNumber}
+🏢 <b>ИНН:</b> ${inn}
 📧 <b>Email:</b> ${orderData.customerEmail || 'Не указан'}
 
 🛍 <b>Заказ:</b>
