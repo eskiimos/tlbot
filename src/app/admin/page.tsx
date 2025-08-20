@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +20,7 @@ export default function AdminLogin() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ password }),
       });
 
       const data = await response.json();
@@ -70,22 +69,6 @@ export default function AdminLogin() {
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Логин
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#303030] focus:border-[#303030]"
-                placeholder="Введите логин"
-              />
-            </div>
-            
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Пароль

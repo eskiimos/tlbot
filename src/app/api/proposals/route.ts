@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Telegraf } from 'telegraf';
 import { Input } from 'telegraf';
 import { generateProposalHTML } from '@/lib/generateProposalHTML';
+import { prisma } from '@/lib/prisma';
 
 const ADMIN_CHAT_ID = '6021853805'; // ID админа
 
@@ -92,10 +93,30 @@ export async function POST(request: NextRequest) {
 
     // Проверяем тестовый режим
     if (telegramId === '123456789' && process.env.NODE_ENV === 'development') {
-      console.log('🧪 Тестовый режим: пропускаем отправку в Telegram');
+      console.log('🧪 Тестовый режим: сохраняем заказ, но пропускаем отправку в Telegram');
+      
+      // В тестовом режиме тоже сохраняем заказ в базу данных
+      const savedOrder = await prisma.order.create({
+        data: {
+          userId: telegramId,
+          telegramId: telegramId,
+          customerName: orderData.customerName || 'Тестовый клиент',
+          customerEmail: orderData.customerEmail || null,
+          customerPhone: orderData.customerPhone || null,
+          customerCompany: orderData.customerCompany || null,
+          customerInn: orderData.customerInn || null,
+          items: orderData.items || [],
+          totalAmount: Math.round((orderData.totalAmount || 0) * 100), // Конвертируем в копейки
+          status: 'NEW'
+        }
+      });
+      
+      console.log('✅ Тестовый заказ сохранен с ID:', savedOrder.id);
+      
       return NextResponse.json({ 
         message: 'Test mode: proposal generated successfully',
-        mode: 'development'
+        mode: 'development',
+        orderId: savedOrder.id
       }, { status: 200 });
     }
 
@@ -104,6 +125,26 @@ export async function POST(request: NextRequest) {
     console.log('📤 Отправка КП через бота...');
 
     try {
+      // Сохраняем заказ в базу данных
+      console.log('💾 Сохраняем заказ в базу данных...');
+      
+      const savedOrder = await prisma.order.create({
+        data: {
+          userId: telegramId,
+          telegramId: telegramId,
+          customerName: orderData.customerName || 'Не указано',
+          customerEmail: orderData.customerEmail || null,
+          customerPhone: orderData.customerPhone || null,
+          customerCompany: orderData.customerCompany || null,
+          customerInn: orderData.customerInn || null,
+          items: orderData.items || [],
+          totalAmount: Math.round((orderData.totalAmount || 0) * 100), // Конвертируем в копейки
+          status: 'NEW'
+        }
+      });
+      
+      console.log('✅ Заказ сохранен с ID:', savedOrder.id);
+
       // Добавляем отладочную информацию
       console.log('📋 Данные для КП:', {
         detailedProposal: orderData.detailedProposal,

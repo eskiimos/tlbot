@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../../../lib/prisma';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -9,35 +7,25 @@ export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json();
 
-    if (!username || !password) {
-      return NextResponse.json({ error: 'Логин и пароль обязательны' }, { status: 400 });
+    if (!password) {
+      return NextResponse.json({ error: 'Пароль обязателен' }, { status: 400 });
     }
 
-    // Ищем админа в базе данных
-    const admin = await prisma.admin.findUnique({
-      where: { username }
-    });
-
-    if (!admin) {
-      return NextResponse.json({ error: 'Неверный логин или пароль' }, { status: 401 });
-    }
-
-    // Проверяем пароль
-    const isValidPassword = await bcrypt.compare(password, admin.password);
-    if (!isValidPassword) {
-      return NextResponse.json({ error: 'Неверный логин или пароль' }, { status: 401 });
+    // Простая проверка пароля
+    if (password !== '123') {
+      return NextResponse.json({ error: 'Неверный пароль' }, { status: 401 });
     }
 
     // Создаем JWT токен
     const token = jwt.sign(
-      { adminId: admin.id, username: admin.username },
+      { adminId: 'admin', username: username || 'admin' },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
 
     const response = NextResponse.json({ 
       message: 'Авторизация успешна',
-      admin: { id: admin.id, username: admin.username }
+      admin: { id: 'admin', username: username || 'admin' }
     });
 
     // Устанавливаем httpOnly cookie с токеном
@@ -66,16 +54,14 @@ export async function GET(request: NextRequest) {
 
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     
-    const admin = await prisma.admin.findUnique({
-      where: { id: decoded.adminId },
-      select: { id: true, username: true }
-    });
-
-    if (!admin) {
-      return NextResponse.json({ error: 'Админ не найден' }, { status: 401 });
+    // Простая проверка без БД
+    if (decoded.adminId !== 'admin') {
+      return NextResponse.json({ error: 'Неверный токен' }, { status: 401 });
     }
 
-    return NextResponse.json({ admin });
+    return NextResponse.json({ 
+      admin: { id: 'admin', username: decoded.username || 'admin' }
+    });
   } catch (error) {
     console.error('Ошибка проверки авторизации:', error);
     return NextResponse.json({ error: 'Неверный токен' }, { status: 401 });
