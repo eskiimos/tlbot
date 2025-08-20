@@ -155,10 +155,21 @@ model OrderComment {
   content   String
   isAdmin   Boolean  @default(false)
   authorName String?
+  telegramMessageId String? // ID сообщения в Telegram для отслеживания
   createdAt DateTime @default(now())
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("order_comments")
+}
+
+model UserOrderContext {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  orderId   String?  // Текущий активный заказ для переписки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_order_context")
 }
 
 model Admin {

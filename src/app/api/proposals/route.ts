@@ -113,6 +113,21 @@ export async function POST(request: NextRequest) {
       
       console.log('✅ Тестовый заказ сохранен с ID:', savedOrder.id);
       
+      // Создаем контекст чата для пользователя
+      try {
+        await prisma.userOrderContext.upsert({
+          where: { userId: telegramId },
+          update: { orderId: savedOrder.id },
+          create: { 
+            userId: telegramId,
+            orderId: savedOrder.id 
+          }
+        });
+        console.log('✅ Контекст чата создан для заказа:', savedOrder.id);
+      } catch (contextError) {
+        console.warn('⚠️ Не удалось создать контекст чата:', contextError);
+      }
+      
       return NextResponse.json({ 
         message: 'Test mode: proposal generated successfully',
         mode: 'development',
@@ -144,6 +159,21 @@ export async function POST(request: NextRequest) {
       });
       
       console.log('✅ Заказ сохранен с ID:', savedOrder.id);
+
+      // Создаем контекст чата для пользователя
+      try {
+        await prisma.userOrderContext.upsert({
+          where: { userId: telegramId },
+          update: { orderId: savedOrder.id },
+          create: { 
+            userId: telegramId,
+            orderId: savedOrder.id 
+          }
+        });
+        console.log('✅ Контекст чата создан для заказа:', savedOrder.id);
+      } catch (contextError) {
+        console.warn('⚠️ Не удалось создать контекст чата:', contextError);
+      }
 
       // Добавляем отладочную информацию
       console.log('📋 Данные для КП:', {

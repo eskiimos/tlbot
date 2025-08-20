@@ -87,6 +87,9 @@ export default function OrderDetails() {
   const [newComment, setNewComment] = useState('');
   const [isAddingComment, setIsAddingComment] = useState(false);
   
+  // Состояние для отправки сообщений клиенту
+  const [isSendingToClient, setIsSendingToClient] = useState(false);
+  
   const router = useRouter();
   const params = useParams();
 
@@ -208,6 +211,37 @@ export default function OrderDetails() {
       console.error('Ошибка добавления комментария:', error);
     } finally {
       setIsAddingComment(false);
+    }
+  };
+
+  // Функция для отправки сообщения клиенту в Telegram
+  const sendToClient = async () => {
+    if (!order || !newComment.trim()) return;
+
+    setIsSendingToClient(true);
+    try {
+      const response = await fetch(`/api/admin/orders/${order.id}/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: newComment.trim()
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setComments(prev => [...prev, data.comment]);
+        setNewComment('');
+      } else {
+        const errorData = await response.json();
+        console.error('Ошибка отправки клиенту:', errorData.error);
+      }
+    } catch (error) {
+      console.error('Ошибка отправки сообщения клиенту:', error);
+    } finally {
+      setIsSendingToClient(false);
     }
   };
 
@@ -546,24 +580,35 @@ export default function OrderDetails() {
               {/* Форма для нового комментария */}
               <div className="border-t border-gray-200 pt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Добавить комментарий
+                  Написать сообщение
                 </label>
                 <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Введите комментарий..."
+                  placeholder="Введите сообщение..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   rows={3}
                 />
-                <div className="mt-3 flex justify-end">
+                <div className="mt-3 flex justify-end space-x-3">
                   <button
                     onClick={addComment}
-                    disabled={!newComment.trim() || isAddingComment}
-                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    disabled={!newComment.trim() || isAddingComment || isSendingToClient}
+                    className="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
-                    {isAddingComment ? 'Добавление...' : 'Добавить комментарий'}
+                    {isAddingComment ? 'Добавление...' : '💬 Внутренний комментарий'}
+                  </button>
+                  <button
+                    onClick={sendToClient}
+                    disabled={!newComment.trim() || isAddingComment || isSendingToClient}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {isSendingToClient ? 'Отправка...' : '📱 Отправить клиенту'}
                   </button>
                 </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  💬 Внутренний комментарий - только для администраторов<br/>
+                  📱 Отправить клиенту - сообщение придет в Telegram и сохранится в переписке
+                </p>
               </div>
             </div>
           </div>
