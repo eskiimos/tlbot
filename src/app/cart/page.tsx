@@ -305,12 +305,14 @@ export default function CartPage() {
         const response = await fetch(`/api/users?telegramId=${tgUser.id}`);
         console.log('📡 API response status:', response.status);
         
+        let completeUserData: UserData;
+        
         if (response.ok) {
           const apiUserData = await response.json();
           console.log('✅ Данные из API:', apiUserData);
           
-          // Формируем объект данных пользователя
-          const completeUserData: UserData = {
+          // Формируем объект данных пользователя с данными из API
+          completeUserData = {
             telegramId: tgUser.id.toString(),
             username: tgUser.username,
             firstName: tgUser.first_name,
@@ -320,12 +322,25 @@ export default function CartPage() {
             companyName: apiUserData?.organization?.contactName,
             inn: apiUserData?.organization?.inn
           };
-          
-          console.log('✅ Сформированные данные пользователя:', completeUserData);
-          setUserData(completeUserData);
         } else {
-          console.log('❌ API вернул ошибку:', response.status);
+          console.log('❌ API вернул ошибку:', response.status, '- пользователь не найден в БД');
+          console.log('📝 Создаем userData только с данными из Telegram');
+          
+          // Создаем базовые данные только из Telegram WebApp
+          completeUserData = {
+            telegramId: tgUser.id.toString(),
+            username: tgUser.username,
+            firstName: tgUser.first_name,
+            lastName: tgUser.last_name,
+            phoneNumber: undefined,
+            email: undefined,
+            companyName: undefined,
+            inn: undefined
+          };
         }
+        
+        console.log('✅ Сформированные данные пользователя:', completeUserData);
+        setUserData(completeUserData);
       } else {
         console.log('❌ Telegram WebApp недоступен, пробуем localStorage');
         // Fallback - пытаемся загрузить из localStorage
