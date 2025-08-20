@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function HomePage() {
+// Компонент для работы с URL параметрами
+function WelcomePageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -36,28 +36,31 @@ export default function HomePage() {
       window.Telegram.WebApp.expand();
     }
     
-    // Проверяем URL параметры
-    const welcomeParam = searchParams.get('welcome');
-    const forceWelcome = welcomeParam === 'true';
-    
-    // Проверяем, был ли пользователь ранее
-    const hasVisited = localStorage.getItem('tl_has_visited');
-    
-    if (forceWelcome) {
-      // Если есть параметр welcome=true, показываем приветственную страницу
-      setShowWelcome(true);
-      setIsReturningUser(false);
-    } else if (hasVisited) {
-      setIsReturningUser(true);
-      // Для возвращающихся пользователей сразу перенаправляем в каталог
-      setTimeout(() => {
-        router.push('/catalog');
-      }, 500);
-    } else {
-      // Первый визит - показываем приветственную страницу
-      setShowWelcome(true);
+    // Проверяем URL параметры (только на клиенте)
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const welcomeParam = urlParams.get('welcome');
+      const forceWelcome = welcomeParam === 'true';
+      
+      // Проверяем, был ли пользователь ранее
+      const hasVisited = localStorage.getItem('tl_has_visited');
+      
+      if (forceWelcome) {
+        // Если есть параметр welcome=true, показываем приветственную страницу
+        setShowWelcome(true);
+        setIsReturningUser(false);
+      } else if (hasVisited) {
+        setIsReturningUser(true);
+        // Для возвращающихся пользователей сразу перенаправляем в каталог
+        setTimeout(() => {
+          router.push('/catalog');
+        }, 500);
+      } else {
+        // Первый визит - показываем приветственную страницу
+        setShowWelcome(true);
+      }
     }
-  }, [router, searchParams]);
+  }, [router]);
 
   const handleServiceSelect = (service: string) => {
     setSelectedService(service);
@@ -782,4 +785,9 @@ export default function HomePage() {
       </div>
     </div>
   );
+}
+
+// Главный экспорт
+export default function HomePage() {
+  return <WelcomePageContent />;
 }
