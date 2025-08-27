@@ -11,13 +11,180 @@ function WelcomePageContent() {
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [nextStep, setNextStep] = useState<number | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedDesignType, setSelectedDesignType] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [productQuantities, setProductQuantities] = useState<{[key: string]: number}>({});
   const [hasBrandbook, setHasBrandbook] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationDirection, setAnimationDirection] = useState<'forward' | 'backward'>('forward');
+  const [animationPhase, setAnimationPhase] = useState<'exit' | 'enter'>('exit');
+
+  // Список доступных товаров из базы данных (без префикса "TL")
+  const availableProducts = [
+    { id: 't-shirt', name: 'Футболка', category: 'clothing' },
+    { id: 'longsleeve', name: 'Лонгслив', category: 'clothing' },
+    { id: 'sweatshirt', name: 'Свитшот', category: 'clothing' },
+    { id: 'hoodies', name: 'Худи', category: 'clothing' },
+    { id: 'halfzip', name: 'Халфзип', category: 'clothing' },
+    { id: 'zip-hoodie', name: 'Зип худи', category: 'clothing' },
+    { id: 'pants', name: 'Штаны', category: 'clothing' },
+    { id: 'jeans', name: 'Джинсы', category: 'clothing' },
+    { id: 'shorts', name: 'Шорты', category: 'clothing' },
+    { id: 'shopper', name: 'Шоппер', category: 'accessories' },
+  ];
+
+  // Определяем этапы квиза в зависимости от выбранной услуги
+  const getQuizSteps = () => {
+    if (selectedService === 'production' && currentStep >= 8) {
+      return [
+        { id: 1, title: 'Товары', description: 'Какие товары интересуют?' },
+        { id: 2, title: 'Готово', description: 'Получить предложение' }
+      ];
+    }
+    return [
+      { id: 1, title: 'Услуга', description: 'Что вам нужно?' },
+      { id: 2, title: 'Детали', description: 'Масштаб проекта' },
+      { id: 3, title: 'Товары', description: 'Категория продукции' },
+      { id: 4, title: 'Настройки', description: 'Дополнительно' },
+      { id: 5, title: 'Готово', description: 'Заявка отправлена' }
+    ];
+  };
+
+  const quizSteps = getQuizSteps();
+
+  // Функция для определения текущего этапа
+  const getCurrentStepNumber = () => {
+    if (currentStep === 1) return 1; // Выбор услуги
+    if (currentStep === 2 || currentStep === 3) return 2; // Детали (тип дизайна или полный цикл)
+    if (currentStep === 4) return 3; // Товары с тегами для дизайна
+    if (currentStep === 5) return 4; // Брендбук и дополнительно
+    if (currentStep === 6 || currentStep === 7) return 5; // Готово (дизайн)
+    if (currentStep === 8) return 1; // Товары для производства (этап 1 из 2)
+    if (currentStep === 9 || currentStep === 10) return 2; // Получить предложение/готово (этап 2 из 2)
+    return 1;
+  };
+
+  // Компонент прогресса
+  const ProgressSteps = () => {
+    const currentStepNumber = getCurrentStepNumber();
+    
+    return (
+      <div className="mb-6 w-full">
+        {/* Мобильная версия - центрированная полоса с точками */}
+        <div className="flex items-center justify-center w-full">
+          <div className="flex items-center">
+            {quizSteps.map((step, index) => (
+              <div key={step.id} className="flex items-center">
+                {/* Точка этапа */}
+                <div className={`
+                  relative flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300
+                  ${currentStepNumber >= step.id 
+                    ? 'bg-[#303030] text-white' 
+                    : 'bg-gray-300 text-gray-500'
+                  }
+                `}>
+                  {currentStepNumber > step.id ? (
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <div className="w-2 h-2 bg-current rounded-full"></div>
+                  )}
+                </div>
+                
+                {/* Линия между точками */}
+                {index < quizSteps.length - 1 && (
+                  <div className={`
+                    w-8 h-0.5 mx-2 transition-all duration-300
+                    ${currentStepNumber > step.id ? 'bg-[#303030]' : 'bg-gray-300'}
+                  `} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Мобильная подпись - только текущий шаг */}
+        <div className="text-center mt-3 w-full">
+          <div className="text-xs text-gray-500">
+            Шаг {getCurrentStepNumber()} из {quizSteps.length}
+          </div>
+          <h3 className="text-sm font-medium text-gray-900 mt-1">
+            {quizSteps[getCurrentStepNumber() - 1]?.description}
+          </h3>
+        </div>
+      </div>
+    );
+  };
+
+  // Функции для работы с товарами
+  const toggleProduct = (productId: string) => {
+    if (selectedProducts.includes(productId)) {
+      setSelectedProducts(selectedProducts.filter(id => id !== productId));
+      const newQuantities = { ...productQuantities };
+      delete newQuantities[productId];
+      setProductQuantities(newQuantities);
+    } else {
+      setSelectedProducts([...selectedProducts, productId]);
+      setProductQuantities({ ...productQuantities, [productId]: 10 });
+    }
+  };
+
+  const updateQuantity = (productId: string, quantity: number) => {
+    if (quantity >= 10) {
+      setProductQuantities({ ...productQuantities, [productId]: quantity });
+    }
+  };
+
+  const increaseQuantity = (productId: string) => {
+    const currentQuantity = productQuantities[productId] || 10;
+    setProductQuantities({ ...productQuantities, [productId]: currentQuantity + 1 });
+  };
+
+  const decreaseQuantity = (productId: string) => {
+    const currentQuantity = productQuantities[productId] || 10;
+    if (currentQuantity > 10) {
+      setProductQuantities({ ...productQuantities, [productId]: currentQuantity - 1 });
+    }
+  };
+
+  const animatedStepChange = (newStep: number) => {
+    const direction = newStep > currentStep ? 'forward' : 'backward';
+    setAnimationDirection(direction);
+    setNextStep(newStep);
+    setIsAnimating(true);
+    setAnimationPhase('exit');
+    
+    // Фаза 1: Убираем текущий контент
+    setTimeout(() => {
+      setCurrentStep(newStep);
+      setNextStep(null);
+      setAnimationPhase('enter');
+      
+      // Фаза 2: Показываем новый контент с анимацией входа
+      setTimeout(() => {
+        setIsAnimating(false);
+        setAnimationPhase('exit');
+      }, 150);
+    }, 300);
+  };
+
+  const getProductsByCategory = (category: string) => {
+    if (category === 'everything') return availableProducts;
+    return availableProducts.filter(product => product.category === category);
+  };
+
+  const handleProductsSelection = () => {
+    if (selectedProducts.length > 0) {
+      animatedStepChange(5); // Переходим к вопросу о брендбуке
+    }
+  };
 
   // Функция для генерации номера заказа
   const generateOrderNumber = () => {
@@ -66,32 +233,33 @@ function WelcomePageContent() {
     setSelectedService(service);
     
     if (service === 'production') {
-      // Сразу переходим в каталог для производства
-      localStorage.setItem('tl_has_visited', 'true');
-      localStorage.setItem('tl_selected_service', 'production');
-      router.push('/catalog');
+      // Переходим к выбору товаров для производства
+      animatedStepChange(8); // Новый этап для выбора товаров производства
     } else if (service === 'design') {
       // Переходим ко второму шагу для выбора типа дизайна
-      setCurrentStep(2);
+      animatedStepChange(2);
     } else if (service === 'full-cycle') {
       // Переходим к информации о полном цикле
-      setCurrentStep(3);
+      animatedStepChange(3);
     }
   };
 
   const handleDesignSelect = (designType: string) => {
     setSelectedDesignType(designType);
-    setCurrentStep(4); // Переходим к выбору категории товаров
+    animatedStepChange(4); // Переходим к выбору категории товаров
   };
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
-    setCurrentStep(5); // Переходим к вопросу о брендбуке
+    // Очищаем предыдущий выбор товаров
+    setSelectedProducts([]);
+    setProductQuantities({});
+    // Остаемся на том же шаге, но теперь показываем товары
   };
 
   const handleBrandbookSelect = (answer: string) => {
     setHasBrandbook(answer);
-    setCurrentStep(6); // Переходим к финальной информации
+    animatedStepChange(6); // Переходим к финальной информации
   };
 
   const handleDesignFinish = async () => {
@@ -128,7 +296,46 @@ function WelcomePageContent() {
       await sendOrderToBot(orderData);
       
       // Показываем информацию о том, что заявка отправлена
-      setCurrentStep(7);
+      animatedStepChange(7);
+    } catch (error) {
+      console.error('Ошибка отправки заказа:', error);
+      setSubmitError('Произошла ошибка при отправке заявки. Попробуйте ещё раз или свяжитесь с нами напрямую.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleProductionFinish = async () => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    setSubmitError(null);
+    
+    try {
+      // Генерируем номер заказа
+      const newOrderNumber = generateOrderNumber();
+      setOrderNumber(newOrderNumber);
+      
+      // Сохраняем все выборы пользователя
+      localStorage.setItem('tl_has_visited', 'true');
+      localStorage.setItem('tl_selected_service', 'production');
+      localStorage.setItem('tl_order_number', newOrderNumber);
+      
+      // Подготавливаем данные для отправки в бот
+      const orderData = {
+        orderNumber: newOrderNumber,
+        service: 'production',
+        products: selectedProducts,
+        quantities: productQuantities,
+        timestamp: new Date().toISOString(),
+        source: 'webapp'
+      };
+      
+      // Отправляем данные в чат-бот
+      await sendProductionOrderToBot(orderData);
+      
+      // Показываем информацию о том, что заявка отправлена
+      animatedStepChange(10);
     } catch (error) {
       console.error('Ошибка отправки заказа:', error);
       setSubmitError('Произошла ошибка при отправке заявки. Попробуйте ещё раз или свяжитесь с нами напрямую.');
@@ -172,6 +379,41 @@ function WelcomePageContent() {
     }
   };
 
+  // Функция для отправки производственного заказа в Telegram бот
+  const sendProductionOrderToBot = async (orderData: any) => {
+    try {
+      // Получаем данные о пользователе из Telegram WebApp
+      let userInfo = null;
+      if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initDataUnsafe?.user) {
+        userInfo = window.Telegram.WebApp.initDataUnsafe.user;
+      }
+
+      const payload = {
+        ...orderData,
+        user: userInfo
+      };
+
+      // Отправляем POST запрос на API роут для обработки заказа производства
+      const response = await fetch('/api/production-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка отправки данных');
+      }
+
+      const result = await response.json();
+      console.log('Производственный заказ успешно отправлен в бот:', result);
+    } catch (error) {
+      console.error('Ошибка при отправке заказа:', error);
+      throw error;
+    }
+  };
+
   const handleFullCycleSelect = () => {
     localStorage.setItem('tl_has_visited', 'true');
     localStorage.setItem('tl_selected_service', 'full-cycle');
@@ -196,7 +438,7 @@ function WelcomePageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 quiz-container">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-md mx-auto px-4 py-4">
@@ -212,10 +454,28 @@ function WelcomePageContent() {
         </div>
       </header>
 
+      {/* Progress Steps */}
+      <div className="w-full py-4 flex justify-center">
+        <ProgressSteps />
+      </div>
+
       {/* Survey Content */}
-      <div className="max-w-md mx-auto px-6 py-8">
-        {/* Step 1: Service Selection */}
-        {currentStep === 1 && (
+      <div className="max-w-md mx-auto px-4 pb-6 overflow-x-hidden">
+        <div className={`
+          transition-all duration-500 ease-in-out overflow-x-hidden
+          ${!isAnimating 
+            ? 'slide-active'
+            : animationPhase === 'exit'
+              ? animationDirection === 'forward' 
+                ? 'slide-exit-forward' 
+                : 'slide-exit-backward'
+              : animationDirection === 'forward'
+                ? 'slide-enter-forward'
+                : 'slide-enter-backward'
+          }
+        `}>
+          {/* Step 1: Service Selection */}
+          {currentStep === 1 && (
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
               Йоу, привет!
@@ -328,7 +588,7 @@ function WelcomePageContent() {
         {currentStep === 2 && (
           <div className="text-center mb-8">
             <button
-              onClick={() => setCurrentStep(1)}
+              onClick={() => animatedStepChange(1)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,9 +612,13 @@ function WelcomePageContent() {
               >
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4z" />
-                    </svg>
+                    <Image
+                      src="/ph_t-shirt.svg"
+                      alt="T-shirt icon"
+                      width={24}
+                      height={24}
+                      className="w-6 h-6 text-gray-700"
+                    />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2">Дизайн одного изделия</h3>
@@ -394,7 +658,7 @@ function WelcomePageContent() {
         {currentStep === 3 && (
           <div className="text-center mb-8">
             <button
-              onClick={() => setCurrentStep(1)}
+              onClick={() => animatedStepChange(1)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -467,11 +731,11 @@ function WelcomePageContent() {
           </div>
         )}
 
-        {/* Step 4: Category Selection for Design */}
+        {/* Step 4: Product Selection with Tags */}
         {currentStep === 4 && (
           <div className="text-center mb-8">
             <button
-              onClick={() => setCurrentStep(2)}
+              onClick={() => animatedStepChange(2)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -484,67 +748,110 @@ function WelcomePageContent() {
               Какие товары интересуют?
             </h1>
             <p className="text-gray-600 text-lg mb-8">
-              Выберите категорию для дизайна
+              Выберите товары и укажите количество (от 10 штук каждого)
             </p>
 
-            <div className="space-y-4">
-              <button
-                onClick={() => handleCategorySelect('clothing')}
-                className="w-full p-6 bg-white rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-lg transition-all duration-200 text-left"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+            {/* Clothing Products */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-left">Одежда</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {getProductsByCategory('clothing').map(product => (
+                  <div key={product.id} className="text-center">
+                    <button
+                      onClick={() => toggleProduct(product.name)}
+                      className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                        selectedProducts.includes(product.name)
+                          ? 'border-[#303030] bg-[#303030] text-white'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className="font-medium">{product.name}</div>
+                      {selectedProducts.includes(product.name) && (
+                        <div className="mt-2 flex items-center justify-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              decreaseQuantity(product.name);
+                            }}
+                            className="w-6 h-6 flex items-center justify-center bg-white text-[#303030] rounded border hover:bg-gray-100 text-sm font-bold"
+                          >
+                            −
+                          </button>
+                          <span className="text-sm font-medium min-w-[40px]">
+                            {productQuantities[product.name] || 10} шт.
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              increaseQuantity(product.name);
+                            }}
+                            className="w-6 h-6 flex items-center justify-center bg-white text-[#303030] rounded border hover:bg-gray-100 text-sm font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </button>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Одежда</h3>
-                    <p className="text-sm text-gray-600">
-                      Футболки, худи, свитшоты, лонгсливы
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleCategorySelect('accessories')}
-                className="w-full p-6 bg-white rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-lg transition-all duration-200 text-left"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Аксессуары</h3>
-                    <p className="text-sm text-gray-600">
-                      Кружки, шопперы, канцелярия, стикеры
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleCategorySelect('everything')}
-                className="w-full p-6 bg-white rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-lg transition-all duration-200 text-left"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Все сразу</h3>
-                    <p className="text-sm text-gray-600">
-                      Комплексная линейка товаров
-                    </p>
-                  </div>
-                </div>
-              </button>
+                ))}
+              </div>
             </div>
+
+            {/* Accessories Products */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-left">Аксессуары</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {getProductsByCategory('accessories').map(product => (
+                  <div key={product.id} className="text-center">
+                    <button
+                      onClick={() => toggleProduct(product.name)}
+                      className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                        selectedProducts.includes(product.name)
+                          ? 'border-[#303030] bg-[#303030] text-white'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className="font-medium">{product.name}</div>
+                      {selectedProducts.includes(product.name) && (
+                        <div className="mt-2 flex items-center justify-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              decreaseQuantity(product.name);
+                            }}
+                            className="w-6 h-6 flex items-center justify-center bg-white text-[#303030] rounded border hover:bg-gray-100 text-sm font-bold"
+                          >
+                            −
+                          </button>
+                          <span className="text-sm font-medium min-w-[40px]">
+                            {productQuantities[product.name] || 10} шт.
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              increaseQuantity(product.name);
+                            }}
+                            className="w-6 h-6 flex items-center justify-center bg-white text-[#303030] rounded border hover:bg-gray-100 text-sm font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Continue Button */}
+            {selectedProducts.length > 0 && (
+              <button
+                onClick={() => animatedStepChange(5)}
+                className="w-full bg-[#303030] text-white py-4 px-6 rounded-lg text-lg font-medium hover:bg-gray-800 transition-colors"
+              >
+                Продолжить
+              </button>
+            )}
           </div>
         )}
 
@@ -552,7 +859,7 @@ function WelcomePageContent() {
         {currentStep === 5 && (
           <div className="text-center mb-8">
             <button
-              onClick={() => setCurrentStep(4)}
+              onClick={() => animatedStepChange(4)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -569,25 +876,6 @@ function WelcomePageContent() {
             </p>
 
             <div className="space-y-4">
-              <button
-                onClick={() => handleBrandbookSelect('yes')}
-                className="w-full p-6 bg-white rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-lg transition-all duration-200 text-left"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Да, есть брендбук</h3>
-                    <p className="text-sm text-gray-600">
-                      У нас есть готовые гайдлайны и фирменный стиль
-                    </p>
-                  </div>
-                </div>
-              </button>
-
               <button
                 onClick={() => handleBrandbookSelect('partial')}
                 className="w-full p-6 bg-white rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-lg transition-all duration-200 text-left"
@@ -633,7 +921,7 @@ function WelcomePageContent() {
         {currentStep === 6 && (
           <div className="text-center mb-8">
             <button
-              onClick={() => setCurrentStep(5)}
+              onClick={() => animatedStepChange(5)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -658,21 +946,34 @@ function WelcomePageContent() {
 
             <div className="bg-white rounded-lg p-6 border border-gray-200 mb-8 text-left">
               <h3 className="font-semibold text-gray-900 mb-4">Ваш заказ:</h3>
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Тип дизайна:</span>{' '}
-                  {selectedDesignType === 'single-item' ? 'Дизайн одного изделия (от 15,000 ₽)' : 'Дизайн коллекции (от 50,000 ₽)'}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Категория:</span>{' '}
-                  {selectedCategory === 'clothing' ? 'Одежда' : 
-                   selectedCategory === 'accessories' ? 'Аксессуары' : 'Все категории'}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Брендбук:</span>{' '}
-                  {hasBrandbook === 'yes' ? 'Есть готовый' : 
-                   hasBrandbook === 'partial' ? 'Частично готов' : 'Создаём с нуля'}
-                </p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Тип дизайна:</span>{' '}
+                    {selectedDesignType === 'single-item' ? 'Дизайн одного изделия (от 15,000 ₽)' : 'Дизайн коллекции (от 50,000 ₽)'}
+                  </p>
+                </div>
+                
+                {selectedProducts.length > 0 && (
+                  <div>
+                    <p className="text-sm text-gray-600 font-medium mb-2">Выбранные товары:</p>
+                    <div className="pl-4 space-y-1">
+                      {selectedProducts.map((productName) => (
+                        <p key={productName} className="text-sm text-gray-600">
+                          • {productName} — {productQuantities[productName] || 10} шт.
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Брендбук:</span>{' '}
+                    {hasBrandbook === 'yes' ? 'Есть готовый' : 
+                     hasBrandbook === 'partial' ? 'Частично готов' : 'Создаём с нуля'}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -810,7 +1111,7 @@ function WelcomePageContent() {
               </button>
               
               <button
-                onClick={() => setCurrentStep(1)}
+                onClick={() => animatedStepChange(1)}
                 className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200"
               >
                 Выбрать другую услугу
@@ -818,6 +1119,246 @@ function WelcomePageContent() {
             </div>
           </div>
         )}
+
+        {/* Step 8: Production Product Selection */}
+        {currentStep === 8 && (
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Какие товары интересуют?
+            </h1>
+            <p className="text-gray-600 text-lg mb-8">
+              Выберите товары и укажите количество (от 10 штук каждого)
+            </p>
+
+            {/* Clothing Products */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-left">Одежда</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {getProductsByCategory('clothing').map(product => (
+                  <div key={product.id} className="text-center">
+                    <button
+                      onClick={() => toggleProduct(product.name)}
+                      className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                        selectedProducts.includes(product.name)
+                          ? 'border-[#303030] bg-[#303030] text-white'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      {product.name}
+                    </button>
+                    
+                    {selectedProducts.includes(product.name) && (
+                      <div className="flex items-center justify-center gap-2 mt-2">
+                        <button
+                          onClick={() => decreaseQuantity(product.name)}
+                          className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors flex items-center justify-center text-lg font-bold"
+                        >
+                          −
+                        </button>
+                        <span className="text-sm font-medium min-w-[3ch] text-center">
+                          {productQuantities[product.name] || 10}
+                        </span>
+                        <button
+                          onClick={() => increaseQuantity(product.name)}
+                          className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors flex items-center justify-center text-lg font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Accessories Products */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-left">Аксессуары</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {getProductsByCategory('accessories').map(product => (
+                  <div key={product.id} className="text-center">
+                    <button
+                      onClick={() => toggleProduct(product.name)}
+                      className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                        selectedProducts.includes(product.name)
+                          ? 'border-[#303030] bg-[#303030] text-white'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      {product.name}
+                    </button>
+                    
+                    {selectedProducts.includes(product.name) && (
+                      <div className="flex items-center justify-center gap-2 mt-2">
+                        <button
+                          onClick={() => decreaseQuantity(product.name)}
+                          className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors flex items-center justify-center text-lg font-bold"
+                        >
+                          −
+                        </button>
+                        <span className="text-sm font-medium min-w-[3ch] text-center">
+                          {productQuantities[product.name] || 10}
+                        </span>
+                        <button
+                          onClick={() => increaseQuantity(product.name)}
+                          className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors flex items-center justify-center text-lg font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            {selectedProducts.length > 0 && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                <h4 className="font-semibold text-gray-800 mb-3">Ваш заказ:</h4>
+                <div className="space-y-2">
+                  {selectedProducts.map(product => (
+                    <div key={product} className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">{product}</span>
+                      <span className="font-medium text-gray-900">
+                        {productQuantities[product] || 10} шт.
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-gray-200 mt-3 pt-3">
+                  <div className="flex justify-between items-center font-semibold">
+                    <span>Всего позиций:</span>
+                    <span>{selectedProducts.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center font-semibold">
+                    <span>Общее количество:</span>
+                    <span>
+                      {Object.values(productQuantities).reduce((sum, qty) => sum + (qty || 10), 0)} шт.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => animatedStepChange(9)}
+              disabled={selectedProducts.length === 0}
+              className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+                selectedProducts.length > 0
+                  ? 'bg-[#303030] text-white hover:bg-black'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Получить предложение
+            </button>
+          </div>
+        )}
+
+        {/* Step 9: Production Proposal */}
+        {currentStep === 9 && (
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Получить предложение
+            </h1>
+            <p className="text-gray-600 text-lg mb-8">
+              Мы подготовим коммерческое предложение на выбранные товары и свяжемся с вами
+            </p>
+
+            {/* Order Summary */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+              <h4 className="font-semibold text-gray-800 mb-3">Выбранные товары:</h4>
+              <div className="space-y-2">
+                {selectedProducts.map(product => (
+                  <div key={product} className="flex justify-between items-center text-sm">
+                    <span className="text-gray-700">{product}</span>
+                    <span className="font-medium text-gray-900">
+                      {productQuantities[product] || 10} шт.
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-gray-200 mt-3 pt-3">
+                <div className="flex justify-between items-center font-semibold">
+                  <span>Общее количество:</span>
+                  <span>
+                    {Object.values(productQuantities).reduce((sum, qty) => sum + (qty || 10), 0)} шт.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => animatedStepChange(8)}
+                className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200"
+              >
+                Изменить товары
+              </button>
+              
+              <button
+                onClick={handleProductionFinish}
+                disabled={isSubmitting}
+                className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+                  isSubmitting
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-[#303030] text-white hover:bg-black'
+                }`}
+              >
+                {isSubmitting ? 'Отправляем...' : 'Отправить заявку'}
+              </button>
+            </div>
+
+            {submitError && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{submitError}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 10: Production Complete */}
+        {currentStep === 10 && (
+          <div className="text-center mb-8">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                Заявка отправлена!
+              </h1>
+              <p className="text-gray-600 text-lg mb-6">
+                Мы получили вашу заявку и подготовим коммерческое предложение в течение рабочего дня
+              </p>
+              
+              {orderNumber && (
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-gray-600 mb-1">Номер заявки:</p>
+                  <p className="text-lg font-bold text-gray-900">#{orderNumber}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/catalog')}
+                className="w-full bg-[#303030] text-white py-3 px-6 rounded-lg font-medium hover:bg-black transition-all duration-200"
+              >
+                Посмотреть каталог товаров
+              </button>
+              
+              <button
+                onClick={() => animatedStepChange(1)}
+                className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200"
+              >
+                Выбрать другую услугу
+              </button>
+            </div>
+          </div>
+        )}
+        </div>
       </div>
 
       {/* Footer */}

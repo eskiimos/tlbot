@@ -77,3 +77,46 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* Запрет горизонтального скролла */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Для контейнера квиза */
+.quiz-container {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Анимации слайдов для квиза */
+.slide-enter-forward {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-enter-backward {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.slide-exit-forward {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.slide-exit-backward {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-active {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.slide-active {
+  transform: translateX(0);
+  opacity: 1;
+}
