@@ -43,20 +43,26 @@ function WelcomePageContent() {
   const getQuizSteps = () => {
     if (selectedService === 'production' && currentStep >= 8) {
       return [
-        { id: 1, title: 'Товары', description: 'Какие товары интересуют?' },
+        { id: 1, title: 'Товары', description: 'Выберите товары и количество' },
         { id: 2, title: 'Готово', description: 'Получить предложение' }
       ];
     }
     return [
-      { id: 1, title: 'Услуга', description: 'Что вам нужно?' },
-      { id: 2, title: 'Детали', description: 'Масштаб проекта' },
-      { id: 3, title: 'Товары', description: 'Категория продукции' },
-      { id: 4, title: 'Настройки', description: 'Дополнительно' },
-      { id: 5, title: 'Готово', description: 'Заявка отправлена' }
+      { id: 1, title: 'Услуга', description: 'Выберите услугу' },
+      { id: 2, title: 'Детали', description: 'Укажите детали проекта' },
+      { id: 3, title: 'Товары', description: 'Выберите товары и количество' },
+      { id: 4, title: 'Настройки', description: 'Дополнительная информация' },
+      { id: 5, title: 'Готово', description: 'Заявка готова' }
     ];
   };
 
   const quizSteps = getQuizSteps();
+
+  // Функция для получения заголовка текущего шага
+  const getCurrentStepTitle = () => {
+    const stepNumber = getCurrentStepNumber();
+    return quizSteps[stepNumber - 1]?.description || '';
+  };
 
   // Функция для определения текущего этапа
   const getCurrentStepNumber = () => {
@@ -75,7 +81,17 @@ function WelcomePageContent() {
     const currentStepNumber = getCurrentStepNumber();
     
     return (
-      <div className="mb-6 w-full">
+      <div className="w-full">
+        {/* Заголовок шага - выше прогресс-бара */}
+        <div className="text-center mb-2 w-full">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {getCurrentStepTitle()}
+          </h2>
+          <div className="text-xs text-gray-500 mt-1">
+            Шаг {getCurrentStepNumber()} из {quizSteps.length}
+          </div>
+        </div>
+
         {/* Мобильная версия - центрированная полоса с точками */}
         <div className="flex items-center justify-center w-full">
           <div className="flex items-center">
@@ -109,31 +125,17 @@ function WelcomePageContent() {
             ))}
           </div>
         </div>
-        
-        {/* Мобильная подпись - только текущий шаг */}
-        <div className="text-center mt-3 w-full">
-          <div className="text-xs text-gray-500">
-            Шаг {getCurrentStepNumber()} из {quizSteps.length}
-          </div>
-          <h3 className="text-sm font-medium text-gray-900 mt-1">
-            {quizSteps[getCurrentStepNumber() - 1]?.description}
-          </h3>
-        </div>
       </div>
     );
   };
 
   // Функции для работы с товарами
   const toggleProduct = (productId: string) => {
-    if (selectedProducts.includes(productId)) {
-      setSelectedProducts(selectedProducts.filter(id => id !== productId));
-      const newQuantities = { ...productQuantities };
-      delete newQuantities[productId];
-      setProductQuantities(newQuantities);
-    } else {
+    if (!selectedProducts.includes(productId)) {
       setSelectedProducts([...selectedProducts, productId]);
       setProductQuantities({ ...productQuantities, [productId]: 10 });
     }
+    // Не удаляем товар при клике - только добавляем
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -151,6 +153,12 @@ function WelcomePageContent() {
     const currentQuantity = productQuantities[productId] || 10;
     if (currentQuantity > 10) {
       setProductQuantities({ ...productQuantities, [productId]: currentQuantity - 1 });
+    } else if (currentQuantity === 10) {
+      // Если количество уже минимальное (10), удаляем товар из выбора
+      setSelectedProducts(selectedProducts.filter(id => id !== productId));
+      const newQuantities = { ...productQuantities };
+      delete newQuantities[productId];
+      setProductQuantities(newQuantities);
     }
   };
 
@@ -454,34 +462,28 @@ function WelcomePageContent() {
         </div>
       </header>
 
-      {/* Progress Steps */}
-      <div className="w-full py-4 flex justify-center">
-        <ProgressSteps />
-      </div>
-
       {/* Survey Content */}
-      <div className="max-w-md mx-auto px-4 pb-6 overflow-x-hidden">
+      <div className="max-w-md mx-auto px-4 pt-10 pb-6 overflow-x-hidden">
         <div className={`
           transition-all duration-500 ease-in-out overflow-x-hidden
           ${!isAnimating 
-            ? 'slide-active'
+            ? 'fade-active'
             : animationPhase === 'exit'
-              ? animationDirection === 'forward' 
-                ? 'slide-exit-forward' 
-                : 'slide-exit-backward'
-              : animationDirection === 'forward'
-                ? 'slide-enter-forward'
-                : 'slide-enter-backward'
+              ? 'fade-exit'
+              : 'fade-enter'
           }
         `}>
           {/* Step 1: Service Selection */}
           {currentStep === 1 && (
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Йоу, привет!
+          <div className="text-center mb-8 pb-2.5">
+            <h1 className="text-3xl font-bold text-gray-900 mb-3">
+              Йоу! Привет! 👋
             </h1>
-            <p className="text-gray-600 text-lg mb-8">
-              Выберите подходящую услугу для вашего бренда
+            <p className="text-gray-600 text-lg mb-2">
+              Давайте создадим что-то крутое для вашего бренда
+            </p>
+            <p className="text-gray-500 text-base mb-8">
+              Выберите услугу, которая вам нужна ↓
             </p>
 
             <div className="space-y-4">
@@ -492,9 +494,13 @@ function WelcomePageContent() {
               >
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                    </svg>
+                    <Image
+                      src="/all_sheet.svg"
+                      alt="Production"
+                      width={24}
+                      height={24}
+                      className="w-6 h-6 text-gray-700"
+                    />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2">Произвести мерч</h3>
@@ -512,34 +518,18 @@ function WelcomePageContent() {
               >
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
-                    </svg>
+                    <Image
+                      src="/ph_t-shirt.svg"
+                      alt="Design"
+                      width={24}
+                      height={24}
+                      className="w-6 h-6 text-gray-700"
+                    />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2">Нужен дизайн мерча</h3>
                     <p className="text-sm text-gray-600">
                       Создам уникальный дизайн для вашего бренда
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Полный цикл */}
-              <button
-                onClick={() => handleServiceSelect('full-cycle')}
-                className="w-full p-6 bg-white rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-lg transition-all duration-200 text-left"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Дизайн + производство</h3>
-                    <p className="text-sm text-gray-600">
-                      Полный цикл от идеи до готового товара
                     </p>
                   </div>
                 </div>
@@ -586,7 +576,7 @@ function WelcomePageContent() {
 
         {/* Step 2: Design Type Selection */}
         {currentStep === 2 && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 pb-2.5">
             <button
               onClick={() => animatedStepChange(1)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
@@ -597,12 +587,10 @@ function WelcomePageContent() {
               Назад
             </button>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Какой дизайн нужен?
-            </h1>
-            <p className="text-gray-600 text-lg mb-8">
-              Выберите масштаб дизайн-проекта
-            </p>
+            {/* Progress Steps */}
+            <div className="w-full flex justify-center">
+              <ProgressSteps />
+            </div>
 
             <div className="space-y-4">
               {/* Дизайн одного изделия */}
@@ -623,9 +611,9 @@ function WelcomePageContent() {
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2">Дизайн одного изделия</h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      Создание дизайна для одного товара (футболка, худи, кружка и т.д.)
+                      Создание дизайна для одного товара (футболка, худи, шоппер и т.д.)
                     </p>
-                    <p className="text-lg font-bold text-gray-900">от 15 000 ₽</p>
+                    {/* <p className="text-lg font-bold text-gray-900">от 15 000 ₽</p> */}
                   </div>
                 </div>
               </button>
@@ -646,7 +634,7 @@ function WelcomePageContent() {
                     <p className="text-sm text-gray-600 mb-2">
                       Создание целой коллекции товаров в едином стиле
                     </p>
-                    <p className="text-lg font-bold text-gray-900">от 50 000 ₽</p>
+                    {/* <p className="text-lg font-bold text-gray-900">от 50 000 ₽</p> */}
                   </div>
                 </div>
               </button>
@@ -656,7 +644,7 @@ function WelcomePageContent() {
 
         {/* Step 3: Full Cycle Info */}
         {currentStep === 3 && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 pb-2.5">
             <button
               onClick={() => animatedStepChange(1)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
@@ -673,9 +661,10 @@ function WelcomePageContent() {
               </svg>
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Дизайн + производство
-            </h1>
+            {/* Progress Steps */}
+            <div className="w-full flex justify-center">
+              <ProgressSteps />
+            </div>
             
             <p className="text-gray-600 text-lg leading-relaxed mb-8">
               Полный цикл создания мерча от идеи до готового товара.<br/>
@@ -733,7 +722,7 @@ function WelcomePageContent() {
 
         {/* Step 4: Product Selection with Tags */}
         {currentStep === 4 && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 pb-2.5">
             <button
               onClick={() => animatedStepChange(2)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
@@ -744,12 +733,10 @@ function WelcomePageContent() {
               Назад
             </button>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Какие товары интересуют?
-            </h1>
-            <p className="text-gray-600 text-lg mb-8">
-              Выберите товары и укажите количество (от 10 штук каждого)
-            </p>
+            {/* Progress Steps */}
+            <div className="w-full flex justify-center">
+              <ProgressSteps />
+            </div>
 
             {/* Clothing Products */}
             <div className="mb-8">
@@ -759,7 +746,7 @@ function WelcomePageContent() {
                   <div key={product.id} className="text-center">
                     <button
                       onClick={() => toggleProduct(product.name)}
-                      className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                      className={`w-full h-20 p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium flex flex-col items-center justify-center ${
                         selectedProducts.includes(product.name)
                           ? 'border-[#303030] bg-[#303030] text-white'
                           : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
@@ -805,7 +792,7 @@ function WelcomePageContent() {
                   <div key={product.id} className="text-center">
                     <button
                       onClick={() => toggleProduct(product.name)}
-                      className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                      className={`w-full h-20 p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium flex flex-col items-center justify-center ${
                         selectedProducts.includes(product.name)
                           ? 'border-[#303030] bg-[#303030] text-white'
                           : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
@@ -857,7 +844,7 @@ function WelcomePageContent() {
 
         {/* Step 5: Brandbook Question */}
         {currentStep === 5 && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 pb-2.5">
             <button
               onClick={() => animatedStepChange(4)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
@@ -868,12 +855,10 @@ function WelcomePageContent() {
               Назад
             </button>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Есть ли готовый брендбук?
-            </h1>
-            <p className="text-gray-600 text-lg mb-8">
-              Это поможет нам лучше понять ваш стиль
-            </p>
+            {/* Progress Steps */}
+            <div className="w-full flex justify-center">
+              <ProgressSteps />
+            </div>
 
             <div className="space-y-4">
               <button
@@ -919,7 +904,7 @@ function WelcomePageContent() {
 
         {/* Step 6: Design Brief Summary */}
         {currentStep === 6 && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 pb-2.5">
             <button
               onClick={() => animatedStepChange(5)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
@@ -936,10 +921,6 @@ function WelcomePageContent() {
               </svg>
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Отлично! Составляем бриф
-            </h1>
-            
             <p className="text-gray-600 text-lg leading-relaxed mb-8">
               Теперь у нас есть вся необходимая информация для создания вашего дизайна
             </p>
@@ -1013,17 +994,13 @@ function WelcomePageContent() {
 
         {/* Step 7: Final Success */}
         {currentStep === 7 && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 pb-2.5">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg className="w-10 h-10 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Заявка отправлена!
-            </h1>
-            
             <p className="text-gray-600 text-lg leading-relaxed mb-6">
               Ваша заявка на дизайн успешно обработана и отправлена нашей команде.
             </p>
@@ -1122,13 +1099,21 @@ function WelcomePageContent() {
 
         {/* Step 8: Production Product Selection */}
         {currentStep === 8 && (
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Какие товары интересуют?
-            </h1>
-            <p className="text-gray-600 text-lg mb-8">
-              Выберите товары и укажите количество (от 10 штук каждого)
-            </p>
+          <div className="text-center mb-8 pb-2.5">
+            <button
+              onClick={() => animatedStepChange(1)}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Назад
+            </button>
+
+            {/* Progress Steps */}
+            <div className="w-full flex justify-center">
+              <ProgressSteps />
+            </div>
 
             {/* Clothing Products */}
             <div className="mb-8">
@@ -1138,34 +1123,39 @@ function WelcomePageContent() {
                   <div key={product.id} className="text-center">
                     <button
                       onClick={() => toggleProduct(product.name)}
-                      className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                      className={`w-full h-20 p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium flex flex-col items-center justify-center ${
                         selectedProducts.includes(product.name)
                           ? 'border-[#303030] bg-[#303030] text-white'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
                       }`}
                     >
-                      {product.name}
+                      <div className="font-medium">{product.name}</div>
+                      {selectedProducts.includes(product.name) && (
+                        <div className="mt-2 flex items-center justify-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              decreaseQuantity(product.name);
+                            }}
+                            className="w-6 h-6 flex items-center justify-center bg-white text-[#303030] rounded border hover:bg-gray-100 text-sm font-bold"
+                          >
+                            −
+                          </button>
+                          <span className="text-sm font-medium min-w-[40px]">
+                            {productQuantities[product.name] || 10} шт.
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              increaseQuantity(product.name);
+                            }}
+                            className="w-6 h-6 flex items-center justify-center bg-white text-[#303030] rounded border hover:bg-gray-100 text-sm font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
                     </button>
-                    
-                    {selectedProducts.includes(product.name) && (
-                      <div className="flex items-center justify-center gap-2 mt-2">
-                        <button
-                          onClick={() => decreaseQuantity(product.name)}
-                          className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors flex items-center justify-center text-lg font-bold"
-                        >
-                          −
-                        </button>
-                        <span className="text-sm font-medium min-w-[3ch] text-center">
-                          {productQuantities[product.name] || 10}
-                        </span>
-                        <button
-                          onClick={() => increaseQuantity(product.name)}
-                          className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors flex items-center justify-center text-lg font-bold"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -1179,91 +1169,73 @@ function WelcomePageContent() {
                   <div key={product.id} className="text-center">
                     <button
                       onClick={() => toggleProduct(product.name)}
-                      className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                      className={`w-full h-20 p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium flex flex-col items-center justify-center ${
                         selectedProducts.includes(product.name)
                           ? 'border-[#303030] bg-[#303030] text-white'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
                       }`}
                     >
-                      {product.name}
+                      <div className="font-medium">{product.name}</div>
+                      {selectedProducts.includes(product.name) && (
+                        <div className="mt-2 flex items-center justify-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              decreaseQuantity(product.name);
+                            }}
+                            className="w-6 h-6 flex items-center justify-center bg-white text-[#303030] rounded border hover:bg-gray-100 text-sm font-bold"
+                          >
+                            −
+                          </button>
+                          <span className="text-sm font-medium min-w-[40px]">
+                            {productQuantities[product.name] || 10} шт.
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              increaseQuantity(product.name);
+                            }}
+                            className="w-6 h-6 flex items-center justify-center bg-white text-[#303030] rounded border hover:bg-gray-100 text-sm font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
                     </button>
-                    
-                    {selectedProducts.includes(product.name) && (
-                      <div className="flex items-center justify-center gap-2 mt-2">
-                        <button
-                          onClick={() => decreaseQuantity(product.name)}
-                          className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors flex items-center justify-center text-lg font-bold"
-                        >
-                          −
-                        </button>
-                        <span className="text-sm font-medium min-w-[3ch] text-center">
-                          {productQuantities[product.name] || 10}
-                        </span>
-                        <button
-                          onClick={() => increaseQuantity(product.name)}
-                          className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors flex items-center justify-center text-lg font-bold"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Order Summary */}
+            {/* Continue Button */}
             {selectedProducts.length > 0 && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-                <h4 className="font-semibold text-gray-800 mb-3">Ваш заказ:</h4>
-                <div className="space-y-2">
-                  {selectedProducts.map(product => (
-                    <div key={product} className="flex justify-between items-center text-sm">
-                      <span className="text-gray-700">{product}</span>
-                      <span className="font-medium text-gray-900">
-                        {productQuantities[product] || 10} шт.
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="border-t border-gray-200 mt-3 pt-3">
-                  <div className="flex justify-between items-center font-semibold">
-                    <span>Всего позиций:</span>
-                    <span>{selectedProducts.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center font-semibold">
-                    <span>Общее количество:</span>
-                    <span>
-                      {Object.values(productQuantities).reduce((sum, qty) => sum + (qty || 10), 0)} шт.
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <button
+                onClick={() => animatedStepChange(9)}
+                className="w-full bg-[#303030] text-white py-4 px-6 rounded-lg text-lg font-medium hover:bg-gray-800 transition-colors"
+              >
+                Получить предложение
+              </button>
             )}
-
-            <button
-              onClick={() => animatedStepChange(9)}
-              disabled={selectedProducts.length === 0}
-              className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
-                selectedProducts.length > 0
-                  ? 'bg-[#303030] text-white hover:bg-black'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Получить предложение
-            </button>
           </div>
         )}
 
         {/* Step 9: Production Proposal */}
         {currentStep === 9 && (
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Получить предложение
-            </h1>
-            <p className="text-gray-600 text-lg mb-8">
-              Мы подготовим коммерческое предложение на выбранные товары и свяжемся с вами
-            </p>
+          <div className="text-center mb-8 pb-2.5">
+            <button
+              onClick={() => animatedStepChange(8)}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Назад
+            </button>
+
+            {/* Progress Steps */}
+            <div className="w-full flex justify-center">
+              <ProgressSteps />
+            </div>
 
             {/* Order Summary */}
             <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
@@ -1319,16 +1291,13 @@ function WelcomePageContent() {
 
         {/* Step 10: Production Complete */}
         {currentStep === 10 && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 pb-2.5">
             <div className="mb-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                Заявка отправлена!
-              </h1>
               <p className="text-gray-600 text-lg mb-6">
                 Мы получили вашу заявку и подготовим коммерческое предложение в течение рабочего дня
               </p>
