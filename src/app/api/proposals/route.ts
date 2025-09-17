@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
 
     // Проверяем токен бота
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    console.log('🔑 Используемый токен:', botToken ? `${botToken.substring(0, 15)}...` : 'НЕ НАЙДЕН');
     if (!botToken) {
       console.error('❌ TELEGRAM_BOT_TOKEN не найден');
       return NextResponse.json({ error: 'Bot configuration missing' }, { status: 500 });

@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  env: {
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+  },
   eslint: {
     // Игнорируем ESLint ошибки при сборке в продакшене
     ignoreDuringBuilds: true,
