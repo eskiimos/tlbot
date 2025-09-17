@@ -194,8 +194,13 @@ function WelcomePageContent() {
     }
   };
 
-  // Функция для генерации номера заказа
+  // Функция для генерации номера заказа - только на клиенте!
   const generateOrderNumber = () => {
+    // Используем заглушку на сервере, чтобы избежать ошибок гидратации
+    if (typeof window === 'undefined') {
+      return 'TL-000000000'; // Плейсхолдер для сервера
+    }
+    
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     return `TL-${timestamp.toString().slice(-6)}${random}`;
@@ -207,8 +212,19 @@ function WelcomePageContent() {
     // Инициализация Telegram WebApp, если есть
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       console.log('🔄 Инициализация Telegram WebApp');
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
+      try {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        
+        // Отключаем неподдерживаемые в версии 6.0 функции, чтобы избежать ошибок
+        // Не используем:
+        // - setBackgroundColor
+        // - setHeaderColor
+        // - enableClosingConfirmation
+        // - disableSwipe
+      } catch (error) {
+        console.error('Ошибка при инициализации Telegram WebApp:', error);
+      }
     }
     
     // Проверяем URL параметры (только на клиенте)

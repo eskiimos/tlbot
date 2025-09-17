@@ -39,7 +39,7 @@
 - Supabase: $0-25/мес
 - PlanetScale: $0-39/мес
 
-## 3. 🐳 Railway.app / Render.com
+## 3. 🐳 Render.com / DigitalOcean App Platform
 
 ### Преимущества:
 - ✅ Простое развертывание из GitHub
@@ -48,8 +48,8 @@
 - ✅ Поддержка Docker
 
 ### Стоимость:
-- Railway: $5-20/мес
 - Render: $7-25/мес
+- DigitalOcean App Platform: $5-12/мес
 
 ## 4. ☁️ VPS + Managed Database
 

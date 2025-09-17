@@ -548,8 +548,8 @@ export async function startBot() {
       process.once('SIGINT', () => bot.stop('SIGINT'));
       process.once('SIGTERM', () => bot.stop('SIGTERM'));
     } else {
-      // В production режиме на Railway тоже используем Long Polling
-      console.log('🔄 Запуск в режиме Long Polling для Railway...');
+      // В production режиме используем Long Polling
+      console.log('🔄 Запуск в режиме Long Polling...');
       
       await bot.launch().catch((error) => {
         console.error('Ошибка при запуске Long Polling:', error);

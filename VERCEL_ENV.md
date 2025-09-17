@@ -7,7 +7,7 @@
 # Получить можно из:
 # - Vercel Postgres
 # - Supabase
-# - Railway.app
+# - Neon
 # - или другого провайдера
 DATABASE_URL="postgresql://username:password@host:port/database?schema=public"
 

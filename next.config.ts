@@ -9,7 +9,6 @@ const nextConfig: NextConfig = {
     // Игнорируем ошибки типов при сборке в продакшене
     ignoreBuildErrors: true,
   },
-  // Убираем output: 'standalone' для Railway
   serverExternalPackages: ['@prisma/client', 'prisma'],
   webpack: (config) => {
     // Исправляем проблемы с внешними модулями

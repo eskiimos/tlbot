@@ -54,7 +54,7 @@ TELEGRAM_ADMIN_CHAT_ID="228594178"
 3. Скопируйте DATABASE_URL
 4. Добавьте в Environment Variables
 
-### Вариант 2: Внешняя база (Supabase, Railway, etc.)
+### Вариант 2: Внешняя база (Supabase, Neon, etc.)
 
 1. Создайте PostgreSQL базу на выбранном сервисе
 2. Скопируйте строку подключения
