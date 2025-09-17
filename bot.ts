@@ -28,8 +28,11 @@ bot.start(async (ctx) => {
           { text: '📞 Контакты', callback_data: 'contact' }
         ],
         [
-          { text: '👕 Каталог', callback_data: 'catalog' },
-          { text: '💰 Получить КП', callback_data: 'proposal' }
+          { text: '👕 Каталог', web_app: { url: `${process.env.NEXT_PUBLIC_APP_URL}` } },
+          { text: '📦 Мои заказы', callback_data: 'my_orders' }
+        ],
+        [
+          { text: '💰 Получить КП', callback_data: 'get_quote' }
         ]
       ]
     }
