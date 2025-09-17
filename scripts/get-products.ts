@@ -10,7 +10,8 @@ async function getProducts() {
         name: true,
         slug: true,
         description: true,
-        price: true
+        price: true,
+        images: true
       }
     });
 
@@ -20,6 +21,7 @@ async function getProducts() {
     products.forEach((product, index) => {
       console.log(`${index + 1}. ${product.name} (${product.slug})`);
       console.log(`   Цена: ${product.price}₽`);
+      console.log(`   Изображения: ${product.images.length > 0 ? product.images.join(', ') : 'НЕТ ИЗОБРАЖЕНИЙ'}`);
       console.log(`   Описание: ${product.description || 'НЕТ ОПИСАНИЯ'}`);
       console.log('');
     });

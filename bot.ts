@@ -363,3 +363,28 @@ bot.on('text', async (ctx) => {
 
 // Экспортируем бота
 export { bot };
+
+// Запуск бота
+if (require.main === module) {
+  console.log('🚀 Запуск бота в режиме polling...');
+  
+  bot.launch()
+    .then(() => {
+      console.log('✅ Бот успешно запущен!');
+      console.log('📱 Ожидание сообщений...');
+    })
+    .catch((error) => {
+      console.error('❌ Ошибка запуска бота:', error);
+    });
+
+  // Graceful stop
+  process.once('SIGINT', () => {
+    console.log('\n🛑 Получен сигнал SIGINT, останавливаем бота...');
+    bot.stop('SIGINT');
+  });
+  
+  process.once('SIGTERM', () => {
+    console.log('\n🛑 Получен сигнал SIGTERM, останавливаем бота...');
+    bot.stop('SIGTERM');
+  });
+}
