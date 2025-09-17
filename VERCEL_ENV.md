@@ -14,7 +14,7 @@ DATABASE_URL="postgresql://username:password@host:port/database?schema=public"
 ### 2. TELEGRAM_BOT_TOKEN
 # Токен Telegram бота
 # Получить у @BotFather в Telegram
-TELEGRAM_BOT_TOKEN="7482550053:AAEd0XzEb3tkL1pryqkMYXn1YhoqJaMD7N0"
+TELEGRAM_BOT_TOKEN="YOUR_BOT_TOKEN_HERE"
 
 ### 3. NEXT_PUBLIC_APP_URL
 # URL мини-приложения (домен Vercel)

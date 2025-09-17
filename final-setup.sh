@@ -92,7 +92,7 @@ EOF
 echo ""
 echo "🤖 Настраиваем Telegram webhook..."
 curl -F "url=http://89.104.65.237:3000/api/bot" \
-     "https://api.telegram.org/bot7482550053:AAEd0XzEb3tkL1pryqkMYXn1YhoqJaMD7N0/setWebhook"
+     "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook"
 
 echo ""
 echo ""

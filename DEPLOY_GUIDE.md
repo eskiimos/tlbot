@@ -32,7 +32,7 @@ vercel --prod
 DATABASE_URL="postgresql://..."
 
 # Токен Telegram бота  
-TELEGRAM_BOT_TOKEN="7482550053:AAEd0XzEb3tkL1pryqkMYXn1YhoqJaMD7N0"
+TELEGRAM_BOT_TOKEN="YOUR_BOT_TOKEN_HERE"
 
 # URL приложения (замените после деплоя)
 NEXT_PUBLIC_APP_URL="https://your-domain.vercel.app"
@@ -66,7 +66,7 @@ TELEGRAM_ADMIN_CHAT_ID="228594178"
 
 ```bash
 # Замените на ваш домен
-curl -X POST "https://api.telegram.org/bot7482550053:AAEd0XzEb3tkL1pryqkMYXn1YhoqJaMD7N0/setWebhook" \
+curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://your-domain.vercel.app/api/bot"}'
 ```

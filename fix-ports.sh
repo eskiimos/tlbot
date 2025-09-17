@@ -34,7 +34,7 @@ sshpass -p "$SERVER_PASS" ssh -o StrictHostKeyChecking=no root@$SERVER_IP "
     docker ps
     
     echo '📡 Обновляем webhook...'
-    curl -s 'https://api.telegram.org/bot7482550053:AAEd0XzEb3tkL1pryqkMYXn1YhoqJaMD7N0/setWebhook?url=https://$DOMAIN/api/bot'
+    curl -s 'https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=https://$DOMAIN/api/bot'
     
     echo '✅ Готово!'
 "

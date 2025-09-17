@@ -37,7 +37,7 @@ echo ""
 # Создаем временный .env для локального тестирования
 cat > .env.local.test << EOF
 NODE_ENV=development
-TELEGRAM_BOT_TOKEN=7482550053:AAEd0XzEb3tkL1pryqkMYXn1YhoqJaMD7N0
+TELEGRAM_BOT_TOKEN=YOUR_BOT_TOKEN_HERE
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 DATABASE_URL=postgresql://postgres:password@localhost:5432/tlbot_dev
 ADMIN_EMAIL=admin@tlbot.local

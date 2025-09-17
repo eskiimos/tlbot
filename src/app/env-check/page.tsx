@@ -32,7 +32,7 @@ export default function EnvCheckPage() {
           <ol className="list-decimal list-inside text-sm space-y-1">
             <li>Зайти в панель управления Vercel</li>
             <li>Перейти в Settings → Environment Variables</li>
-            <li>Добавить TELEGRAM_BOT_TOKEN со значением: 7482550053:AAEd0XzEb3tkL1pryqkMYXn1YhoqJaMD7N0</li>
+            <li>Добавить TELEGRAM_BOT_TOKEN со значением: YOUR_BOT_TOKEN_HERE</li>
             <li>Сохранить и пересобрать проект</li>
           </ol>
         </div>
