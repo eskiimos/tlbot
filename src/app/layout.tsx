@@ -2,13 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
-import dynamic from "next/dynamic";
-
-// Динамический импорт провайдера Telegram WebApp (только на клиенте)
-const TelegramWebAppProvider = dynamic(
-  () => import("@/components/TelegramWebAppProvider"),
-  { ssr: false }
-);
+import ClientProviders from "@/components/ClientProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,9 +33,9 @@ export default function RootLayout({
           src="https://telegram.org/js/telegram-web-app.js" 
           strategy="beforeInteractive"
         />
-        <TelegramWebAppProvider>
+        <ClientProviders>
           {children}
-        </TelegramWebAppProvider>
+        </ClientProviders>
       </body>
     </html>
   );
