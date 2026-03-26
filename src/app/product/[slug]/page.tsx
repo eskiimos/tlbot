@@ -4,6 +4,7 @@ import { useEffect, useState, TouchEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import Footer from '@/components/Footer';
 
 interface PriceTier {
   id: string;
@@ -564,74 +565,51 @@ export default function ProductPage() {
   const currentImage = product.images.length > 0 ? product.images[currentImageIndex] : '';
 
   return (
-    <div className="min-h-screen bg-[#f8f8f8]">
-      {/* Хэдер с навигацией */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => router.back()}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <svg className="w-6 h-6 text-[#303030]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="flex-1 text-center">
-              <Link href="/catalog" title="На главную">
-                <Image
-                  src="/TLlogo.svg"
-                  alt="TL Logo"
-                  width={120}
-                  height={40}
-                  className="h-10 w-auto mx-auto cursor-pointer"
-                />
-              </Link>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Кнопка "Услуги" */}
-              <Link 
-                href="/?welcome=true"
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                title="Наши услуги"
-              >
-                <svg 
-                  width={24} 
-                  height={24} 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth={2}
-                  className="w-6 h-6 text-[#303030]"
-                >
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M9,9h0a3,3,0,0,1,6,0c0,2-3,3-3,3"/>
-                  <path d="M12,17h0"/>
-                </svg>
-              </Link>
-              
-              {/* Кнопка корзины */}
-              <button 
-                onClick={() => {
-                  router.push('/cart');
-                }}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors relative"
-              >
-                <Image
-                  src="/teenyicons_bag-outline.svg"
-                  alt="Корзина"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6"
-                />
-                {isMounted && cartItemsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center min-w-[20px]">
-                    {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* Хэдер */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-black/5">
+        <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+
+          {/* Кнопка назад */}
+          <button
+            onClick={() => router.back()}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:bg-black/10 transition-colors -ml-1"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#303030" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+
+          {/* Логотип-ссылка на каталог */}
+          <Link href="/catalog" title="Вернуться в каталог">
+            <Image
+              src="/TLlogo.svg"
+              alt="TL Logo"
+              width={88}
+              height={32}
+              className="h-8 w-auto"
+              priority
+            />
+          </Link>
+
+          {/* Кнопка корзины */}
+          <button
+            onClick={() => router.push('/cart')}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:bg-black/10 transition-colors relative -mr-1"
+            title="Корзина"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#303030" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            {isMounted && cartItemsCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-[#303030] text-white text-[10px] font-semibold rounded-full flex items-center justify-center leading-none">
+                {cartItemsCount > 99 ? '99+' : cartItemsCount}
+              </span>
+            )}
+          </button>
+
         </div>
       </header>
 
@@ -954,6 +932,9 @@ export default function ProductPage() {
           </div>
         </div>
       )}
+
+      {/* Футер */}
+      <Footer />
     </div>
   );
 }

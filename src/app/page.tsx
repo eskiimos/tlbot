@@ -9,7 +9,7 @@ import Link from 'next/link';
 function WelcomePageContent() {
   const router = useRouter();
   const [isReturningUser, setIsReturningUser] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true); // Инициализируем как true для SSR
   const [currentStep, setCurrentStep] = useState(1);
   const [nextStep, setNextStep] = useState<number | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);

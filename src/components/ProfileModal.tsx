@@ -132,15 +132,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
         {/* Заголовок */}
-        <div className="sticky top-0 bg-white border-b p-4 rounded-t-2xl">
+        <div className="flex-shrink-0 bg-white border-b border-black/5 p-5 sm:p-6 rounded-t-3xl">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">👤 Профиль</h2>
+            <h2 className="text-xl font-semibold text-[#303030]">Мой профиль</h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-black/5 rounded-full transition-colors -mr-2"
             >
               <Image
                 src="/material-symbols_info-outline.svg"
@@ -154,8 +154,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
           <p className="text-sm text-gray-600 mt-1">
             Данные будут использоваться для быстрого оформления коммерческих предложений
           </p>
-          <div className="bg-blue-50 p-2 rounded-lg mt-2">
-            <p className="text-xs text-blue-800">
+          <div className="bg-black/5 p-2 rounded-xl mt-2">
+            <p className="text-xs text-[#303030]">
               💡 После сохранения, форма КП будет автоматически заполнена этими данными
             </p>
           </div>
@@ -177,8 +177,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                   setErrors(prev => ({ ...prev, firstName: '' }));
                 }
               }}
-              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.firstName ? 'border-red-500' : 'border-gray-300'
+              className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-[#303030] focus:border-transparent ${
+                errors.firstName ? 'border-red-500' : 'border-black/10'
               }`}
               placeholder="Введите ваше имя"
             />
@@ -196,7 +196,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               type="text"
               value={formData.lastName || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-black/10 rounded-xl focus:ring-2 focus:ring-[#303030] focus:border-transparent"
               placeholder="Введите вашу фамилию"
             />
           </div>
@@ -210,8 +210,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               type="tel"
               value={formData.phoneNumber || ''}
               onChange={handlePhoneChange}
-              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+              className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-[#303030] focus:border-transparent ${
+                errors.phoneNumber ? 'border-red-500' : 'border-black/10'
               }`}
               placeholder="+7 (999) 999-99-99"
             />
@@ -229,7 +229,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               type="email"
               value={formData.email || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-black/10 rounded-xl focus:ring-2 focus:ring-[#303030] focus:border-transparent"
               placeholder="your@email.com"
             />
           </div>
@@ -243,7 +243,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               type="text"
               value={formData.companyName || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-black/10 rounded-xl focus:ring-2 focus:ring-[#303030] focus:border-transparent"
               placeholder="ООО «Ваша компания»"
             />
           </div>
@@ -257,7 +257,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               type="text"
               value={formData.inn || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, inn: e.target.value }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-black/10 rounded-xl focus:ring-2 focus:ring-[#303030] focus:border-transparent"
               placeholder="1234567890"
               maxLength={12}
             />
@@ -268,11 +268,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
           {/* Telegram данные (если есть) */}
           {userData?.username && (
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="bg-black/5 p-3 rounded-xl">
+              <p className="text-sm text-[#303030]">
                 <strong>Telegram:</strong> @{userData.username}
               </p>
-              <p className="text-xs text-blue-600 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 Данные из вашего Telegram аккаунта
               </p>
             </div>
@@ -280,19 +280,19 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
         </div>
 
         {/* Кнопки */}
-        <div className="sticky bottom-0 bg-white border-t p-4 rounded-b-2xl">
+        <div className="sticky bottom-0 bg-white border-t border-black/5 p-4 rounded-b-3xl sm:rounded-b-3xl mt-auto">
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+              className="flex-1 px-4 py-3.5 text-[#303030] bg-white border border-[#303030]/20 rounded-xl hover:bg-black/5 transition-colors font-medium text-sm"
             >
               Отмена
             </button>
             <button
               onClick={handleSave}
-              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="flex-1 px-4 py-3.5 bg-[#303030] text-white rounded-xl hover:bg-black shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] transition-all font-medium text-sm"
             >
-              💾 Сохранить
+              Сохранить
             </button>
           </div>
         </div>

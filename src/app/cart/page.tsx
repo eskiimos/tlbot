@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import UserDataForm from '@/components/UserDataForm';
 import ProfileModal from '@/components/ProfileModal';
+import Footer from '@/components/Footer';
 
 interface CartItem {
   id: string;
@@ -1069,70 +1070,38 @@ export default function CartPage() {
   const totalPrice = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
   return (
-    <div className="min-h-screen bg-[#f8f8f8]">
+    <div className="min-h-screen bg-white">
       {/* PDF generation is deprecated — no hidden renderer */}
 
       {/* Хэдер */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => router.back()}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <svg className="w-6 h-6 text-[#303030]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="flex-1 text-center">
-              <Image
-                src="/TLlogo.svg"
-                alt="TL Logo"
-                width={120}
-                height={40}
-                className="h-10 w-auto mx-auto"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Кнопка "Услуги" */}
-              <Link 
-                href="/?welcome=true"
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                title="Наши услуги"
-              >
-                <svg 
-                  width={24} 
-                  height={24} 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth={2}
-                  className="w-6 h-6 text-[#303030]"
-                >
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M9,9h0a3,3,0,0,1,6,0c0,2-3,3-3,3"/>
-                  <path d="M12,17h0"/>
-                </svg>
-              </Link>
-              
-              {/* Кнопка профиля */}
-              <button 
-                onClick={() => {
-                  setShowProfileModal(true);
-                }}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                title="Профиль и настройки"
-              >
-                <Image
-                  src="/bx_user.svg"
-                  alt="Профиль"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6"
-                />
-              </button>
-            </div>
-          </div>
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-black/5">
+        <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+
+          {/* Кнопка назад */}
+          <button
+            onClick={() => router.back()}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:bg-black/10 transition-colors -ml-1"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#303030" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+
+          {/* Заголовок */}
+          <span className="text-[15px] font-semibold tracking-tight text-[#303030]">Корзина</span>
+
+          {/* Кнопка профиля */}
+          <button
+            onClick={() => setShowProfileModal(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:bg-black/10 transition-colors -mr-1"
+            title="Профиль"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#303030" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </button>
+
         </div>
       </header>
 
@@ -1212,20 +1181,20 @@ export default function CartPage() {
 
         {cartItems.length === 0 ? (
           // Пустая корзина
-          <div className="bg-white rounded-lg p-8 text-center shadow-sm">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="flex flex-col items-center justify-center p-8 mt-10 text-center">
+            <div className="w-20 h-20 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-6">
               <Image
                 src="/teenyicons_bag-outline.svg"
                 alt="Пустая корзина"
                 width={32}
                 height={32}
-                className="w-8 h-8 text-gray-400"
+                className="w-8 h-8 opacity-60"
               />
             </div>
-            <h3 className="text-lg font-semibold text-[#303030] mb-2">
+            <h3 className="text-xl font-medium text-[#303030] mb-2">
               Корзина пуста
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-500 mb-8 max-w-[280px]">
               {(() => {
                 const selectedService = localStorage.getItem('tl_selected_service');
                 if (selectedService === 'production') {
@@ -1236,7 +1205,7 @@ export default function CartPage() {
             </p>
             <Link
               href="/catalog"
-              className="inline-block px-6 py-3 bg-[#303030] text-white rounded-lg font-medium hover:bg-[#404040] transition-colors"
+              className="w-full px-6 py-4 bg-[#303030] text-white rounded-2xl font-medium hover:bg-black shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] transition-all flex items-center justify-center"
             >
               Перейти в каталог
             </Link>
@@ -1258,17 +1227,17 @@ export default function CartPage() {
                 const hasPackaging = (categorizedOptions.packaging?.length || 0) > 0;
 
                 return (
-                  <div key={item.id} className="bg-white rounded-lg p-4 shadow-sm">
+                  <div key={item.id} className="bg-white rounded-2xl p-4 border border-black/5">
                     {/* Основная информация о товаре */}
-                    <div className="flex gap-3 mb-4">
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center">
+                    <div className="flex gap-4 mb-4">
+                      <div className="w-20 h-[100px] bg-[#F7F7F7] rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
                         {item.image ? (
                           <Image
                             src={item.image}
                             alt={item.productName}
-                            width={64}
-                            height={64}
-                            className="w-full h-full object-cover rounded-lg"
+                            width={80}
+                            height={100}
+                            className="w-full h-full object-cover"
                           />
                         ) : (
                           <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1278,8 +1247,8 @@ export default function CartPage() {
                       </div>
                       
                       <div className="flex-1">
-                        <h3 className="font-semibold text-[#303030] mb-1">{item.productName}</h3>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <h3 className="font-medium text-[#303030] leading-tight mb-1.5">{item.productName}</h3>
+                        <p className="text-sm text-gray-500 mb-3">
                           Артикул: {item.productSlug.toUpperCase()}
                         </p>
                         
@@ -1289,10 +1258,10 @@ export default function CartPage() {
                             <button
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
                               disabled={item.quantity <= 10}
-                              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-[#303030] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-8 h-8 rounded-full border border-black/10 flex items-center justify-center hover:border-[#303030] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" />
                               </svg>
                             </button>
                             
@@ -1302,20 +1271,20 @@ export default function CartPage() {
                             
                             <button
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-[#303030] transition-colors"
+                              className="w-8 h-8 rounded-full border border-black/10 flex items-center justify-center hover:border-[#303030] transition-colors"
                             >
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                               </svg>
                             </button>
                           </div>
                           
                           <button
                             onClick={() => removeFromCart(item.id)}
-                            className="ml-auto p-1 text-red-500 hover:text-red-700 transition-colors"
+                            className="ml-auto p-2 -mr-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
                         </div>
@@ -1323,28 +1292,27 @@ export default function CartPage() {
                     </div>
 
                     {/* Переключатель «Опции» */}
-                    <div className="border-t border-gray-100 pt-3 mt-2">
-                      <div className="flex items-center justify-between">
+                    <div className="border-t border-black/5 mt-4 pt-4">
+                      <div 
+                        className="flex justify-between items-center cursor-pointer"
+                        onClick={() => {
+                          const updatedCart = cartItems.map(cartItem => 
+                            cartItem.id === item.id 
+                              ? { ...cartItem, detailedProposal: !cartItem.detailedProposal }
+                              : cartItem
+                          );
+                          setCartItems(updatedCart);
+                          localStorage.setItem('tlbot_cart', JSON.stringify(updatedCart));
+                          setConfigExpanded(prev => ({ ...prev, [item.id]: !item.detailedProposal }));
+                        }}
+                      >
                         <div>
-                          <span className="text-sm font-medium text-[#303030]">Добавьте опции</span>
-                          <p className="text-xs text-gray-500 mt-1">Принт | Бирки | Упаковка</p>
+                          <h4 className="font-medium text-sm text-[#303030]">Детализация</h4>
+                          <p className="text-xs text-gray-500 mt-1">Принт, бирки, упаковка</p>
                         </div>
                         <button
                           type="button"
-                          onClick={() => {
-                            // Обновляем состояние товара с новым значением detailedProposal
-                            const updatedCart = cartItems.map(cartItem => 
-                              cartItem.id === item.id 
-                                ? { ...cartItem, detailedProposal: !cartItem.detailedProposal }
-                                : cartItem
-                            );
-                            setCartItems(updatedCart);
-                            localStorage.setItem('tlbot_cart', JSON.stringify(updatedCart));
-                            
-                            // Также обновляем состояние для UI конфигурации
-                            setConfigExpanded(prev => ({ ...prev, [item.id]: !item.detailedProposal }));
-                          }}
-                          className={`group w-10 h-6 rounded-full relative transition-colors duration-200 ease-out ${item.detailedProposal ? 'bg-gray-800' : 'bg-gray-300'}`}
+                          className={`group w-10 h-6 rounded-full relative transition-colors duration-200 ease-out ${item.detailedProposal ? 'bg-[#303030]' : 'bg-black/10'}`}
                           role="switch"
                           aria-checked={!!item.detailedProposal}
                            aria-label="Переключить подробное КП"
@@ -1517,6 +1485,9 @@ export default function CartPage() {
           </>
         )}
       </div>
+
+      {/* Футер */}
+      <Footer />
 
       {/* Уведомление об удалении с возможностью отмены */}
       {deletedItem && (

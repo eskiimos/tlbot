@@ -144,10 +144,10 @@ export default function ProductCard({ product, isCompact = false }: ProductCardP
   };
 
   return (
-    <div ref={cardRef} className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div ref={cardRef} className="group flex flex-col bg-white rounded-3xl overflow-hidden border border-black/5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300">
       {/* Простой слайдер изображений с touch поддержкой */}
       <div 
-        className="relative aspect-square overflow-hidden cursor-grab active:cursor-grabbing"
+        className="relative aspect-[4/5] bg-[#F7F7F7] overflow-hidden cursor-grab active:cursor-grabbing"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -179,9 +179,7 @@ export default function ProductCard({ product, isCompact = false }: ProductCardP
                   />
                 ) : (
                   // Skeleton loader для неопользованных изображений
-                  <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
-                    <div className="w-12 h-12 bg-gray-300 rounded-full animate-pulse"></div>
-                  </div>
+                  <div className="w-full h-full bg-[#f2f2f7] animate-pulse"></div>
                 )}
               </div>
             ))}
@@ -194,15 +192,18 @@ export default function ProductCard({ product, isCompact = false }: ProductCardP
 
         {/* Точки-индикаторы с овальной активной точкой */}
         {product.images.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1.5 px-2.5 py-1.5 rounded-full bg-black/10 backdrop-blur-md">
             {product.images.map((_, index) => (
               <button
                 key={index}
-                onClick={() => goToImage(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${
+                onClick={(e) => {
+                  e.preventDefault();
+                  goToImage(index);
+                }}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
                   index === currentImageIndex 
-                    ? 'w-6 bg-white' 
-                    : 'w-2 bg-white/50'
+                    ? 'w-4 bg-white shadow-sm' 
+                    : 'w-1.5 bg-white/60 hover:bg-white/80'
                 }`}
                 aria-label={`Перейти к изображению ${index + 1}`}
               />
@@ -212,24 +213,24 @@ export default function ProductCard({ product, isCompact = false }: ProductCardP
       </div>
 
       {/* Информация о товаре */}
-      <div className={`p-4 ${isCompact ? 'p-3' : 'p-4'}`}>
-        <Link href={`/product/${product.slug}`} className="block hover:text-gray-700 transition-colors">
-          <h3 className={`font-medium text-gray-900 mb-2 ${isCompact ? 'text-sm' : 'text-base'}`}>
-            {product.name}
-          </h3>
-        </Link>
-        <p className={`text-gray-900 font-semibold ${isCompact ? 'text-lg' : 'text-xl'}`}>
-          от {getLowestPrice().toLocaleString('ru-RU')}₽
-        </p>
-        <Link 
-          href={`/product/${product.slug}`}
-          className={`inline-block mt-3 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors ${
-            isCompact ? 'text-sm px-3 py-1.5' : 'text-base px-4 py-2'
-          }`}
-        >
-          Подробнее
-        </Link>
-      </div>
+      <Link href={`/product/${product.slug}`} className="flex flex-col flex-grow">
+        <div className={`p-4 flex flex-col flex-grow justify-between ${isCompact ? 'p-3' : 'p-4'}`}>
+          <div className="mb-3">
+            <h3 className={`font-medium text-[#303030] leading-tight mb-1 ${isCompact ? 'text-[13px]' : 'text-[15px]'}`}>
+              {product.name}
+            </h3>
+            <p className={`font-semibold text-black tracking-tight ${isCompact ? 'text-[15px]' : 'text-[18px]'}`}>
+              от {getLowestPrice().toLocaleString('ru-RU')} ₽
+            </p>
+          </div>
+          
+          <div className={`w-full text-center font-medium rounded-xl transition-colors bg-black/[0.04] text-[#303030] group-hover:bg-black/10 ${
+              isCompact ? 'text-xs py-2' : 'text-sm py-2.5'
+            }`}>
+            Подробнее
+          </div>
+        </div>
+      </Link>
     </div>
   );
 }

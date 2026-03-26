@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import ProfileModal from '@/components/ProfileModal';
+import Footer from '@/components/Footer';
 
 interface PriceTier {
   id: string;
@@ -38,7 +39,7 @@ export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'single' | 'double'>('single'); // single = 1 в ряд, double = 2 в ряд
+  const [viewMode, setViewMode] = useState<'single' | 'double'>('double'); // single = 1 в ряд, double = 2 в ряд
   const [cartItemsCount, setCartItemsCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const [displayedProductsCount, setDisplayedProductsCount] = useState(6); // Показываем сначала 6 товаров
@@ -188,83 +189,51 @@ export default function Catalog() {
     console.log('Данные профиля сохранены в каталоге:', data);
   };
   return (
-    <div className="min-h-screen bg-[#f8f8f8]">
-      {/* Хэдер с логотипом */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            {/* Левая группа кнопок */}
-            <div className="flex items-center gap-2">
-              {/* Иконка профиля */}
-              <button 
-                onClick={() => setShowProfileModal(true)}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                title="Профиль и настройки"
-              >
-                <Image
-                  src="/bx_user.svg"
-                  alt="Личный кабинет"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6 text-[#303030]"
-                />
-              </button>
-              
-              {/* Кнопка "Услуги" */}
-              <Link 
-                href="/?welcome=true"
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                title="Наши услуги"
-              >
-                <svg 
-                  width={24} 
-                  height={24} 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth={2}
-                  className="w-6 h-6 text-[#303030]"
-                >
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M9,9h0a3,3,0,0,1,6,0c0,2-3,3-3,3"/>
-                  <path d="M12,17h0"/>
-                </svg>
-              </Link>
-            </div>
-            
-            {/* Логотип по центру */}
-            <div className="flex justify-center">
-              <Image
-                src="/TLlogo.svg"
-                alt="TL Logo"
-                width={120}
-                height={40}
-                className="h-10 w-auto"
-              />
-            </div>
-            
-            {/* Иконка корзины справа */}
-            <button 
-              onClick={() => {
-                window.location.href = '/cart';
-              }}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors relative"
-              title="Корзина"
-            >
-              <Image
-                src="/teenyicons_bag-outline.svg"
-                alt="Корзина"
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
-              {isMounted && cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center min-w-[20px]">
-                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                </span>
-              )}
-            </button>
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* Хэдер */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-black/5">
+        <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+
+          {/* Левая кнопка — профиль */}
+          <button
+            onClick={() => setShowProfileModal(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:bg-black/10 transition-colors"
+            title="Профиль"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#303030" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </button>
+
+          {/* Центр — логотип */}
+          <Image
+            src="/TLlogo.svg"
+            alt="TL Logo"
+            width={88}
+            height={32}
+            className="h-8 w-auto"
+            priority
+          />
+
+          {/* Правая кнопка — корзина */}
+          <button
+            onClick={() => { window.location.href = '/cart'; }}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 active:bg-black/10 transition-colors relative"
+            title="Корзина"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#303030" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            {isMounted && cartItemsCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-[#303030] text-white text-[10px] font-semibold rounded-full flex items-center justify-center leading-none">
+                {cartItemsCount > 99 ? '99+' : cartItemsCount}
+              </span>
+            )}
+          </button>
+
         </div>
       </header>
 
@@ -275,15 +244,17 @@ export default function Catalog() {
         
         if (selectedService === 'production') {
           return (
-            <div className="bg-gray-100 border-b border-gray-200 sticky top-0 z-10">
-              <div className="max-w-md mx-auto px-4 py-3">
-                <div className="flex items-start gap-2 text-sm text-gray-700">
-                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                  </svg>
+            <div className="bg-[#fafafa] border-b border-black/5 sticky top-[57px] sm:top-[61px] z-40">
+              <div className="max-w-md mx-auto px-4 py-2.5">
+                <div className="flex items-center gap-2.5 text-[#303030]">
+                  <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                  </div>
                   <div>
-                    <div className="font-medium">Производство мерча</div>
-                    <div className="text-xs text-gray-600 mt-0.5">👆 Выберите необходимые товары из каталога</div>
+                    <div className="text-[13px] font-semibold leading-tight">Производство мерча</div>
+                    <div className="text-[11px] text-[#8e8e93] leading-tight mt-0.5">Выберите товары для производства</div>
                   </div>
                 </div>
               </div>
@@ -292,17 +263,19 @@ export default function Catalog() {
         }
         
         if (selectedService === 'design') {
-          const typeText = designType === 'single-item' ? 'Дизайн одного изделия (от 15 000 ₽)' : 'Дизайн коллекции (от 50 000 ₽)';
+          const typeText = designType === 'single-item' ? 'Дизайн одного изделия' : 'Дизайн коллекции';
           return (
-            <div className="bg-gray-100 border-b border-gray-200 sticky top-0 z-10">
-              <div className="max-w-md mx-auto px-4 py-3">
-                <div className="flex items-start gap-2 text-sm text-gray-700">
-                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4z" />
-                  </svg>
+            <div className="bg-[#fafafa] border-b border-black/5 sticky top-[57px] sm:top-[61px] z-40">
+              <div className="max-w-md mx-auto px-4 py-2.5">
+                <div className="flex items-center gap-2.5 text-[#303030]">
+                  <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4z" />
+                    </svg>
+                  </div>
                   <div>
-                    <div className="font-medium">{typeText}</div>
-                    <div className="text-xs text-gray-600 mt-0.5">📞 Мы уже обрабатываем вашу заявку</div>
+                    <div className="text-[13px] font-semibold leading-tight">{typeText}</div>
+                    <div className="text-[11px] text-[#8e8e93] leading-tight mt-0.5">Мы обрабатываем заявку</div>
                   </div>
                 </div>
               </div>
@@ -312,15 +285,17 @@ export default function Catalog() {
         
         if (selectedService === 'full-cycle') {
           return (
-            <div className="bg-gray-100 border-b border-gray-200 sticky top-0 z-10">
-              <div className="max-w-md mx-auto px-4 py-3">
-                <div className="flex items-start gap-2 text-sm text-gray-700">
-                  <svg className="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                  </svg>
+            <div className="bg-[#fafafa] border-b border-black/5 sticky top-[57px] sm:top-[61px] z-40">
+              <div className="max-w-md mx-auto px-4 py-2.5">
+                <div className="flex items-center gap-2.5 text-[#303030]">
+                  <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                  </div>
                   <div>
-                    <div className="font-medium">Дизайн + производство</div>
-                    <div className="text-xs text-gray-600 mt-0.5">📞 Ожидайте звонка для обсуждения проекта</div>
+                    <div className="text-[13px] font-semibold leading-tight">Под ключ</div>
+                    <div className="text-[11px] text-[#8e8e93] leading-tight mt-0.5">Ожидайте звонка менеджера</div>
                   </div>
                 </div>
               </div>
@@ -332,24 +307,25 @@ export default function Catalog() {
       })()}
 
       {/* Контент каталога */}
-      <div className="max-w-md mx-auto p-4">
+      <div className="max-w-md mx-auto p-4 pt-2">
         {isLoading ? (
           <>
             {/* Skeleton для кнопок категорий */}
             <div className="flex flex-wrap gap-2 mb-6">
               {[1,2,3,4,5].map(i => (
-                <div key={i} className="h-9 bg-gray-200 rounded-full animate-pulse" style={{width: `${60 + i * 20}px`}}></div>
+                <div key={i} className="h-9 bg-black/5 rounded-full animate-pulse" style={{width: `${60 + i * 20}px`}}></div>
               ))}
             </div>
             
             {/* Skeleton для товаров */}
-            <div className="grid gap-4 grid-cols-1">
+            <div className="grid gap-x-3 gap-y-6 grid-cols-2">
               {[1,2,3,4,5,6].map(i => (
-                <div key={i} className="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
-                  <div className="aspect-square bg-gray-200"></div>
-                  <div className="p-4">
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-6 bg-gray-200 rounded w-24"></div>
+                <div key={i} className="bg-white rounded-3xl overflow-hidden border border-black/5 animate-pulse">
+                  <div className="aspect-[4/5] bg-black/5"></div>
+                  <div className="p-3">
+                    <div className="h-3 bg-black/10 rounded w-3/4 mb-3"></div>
+                    <div className="h-4 bg-black/10 rounded w-1/2 mb-4"></div>
+                    <div className="h-8 bg-black/5 rounded-xl w-full"></div>
                   </div>
                 </div>
               ))}
@@ -357,24 +333,17 @@ export default function Catalog() {
           </>
         ) : (
           <>
-            {/* Удалено промо-сообщение с заголовком и плашкой */}
-            <div className="mb-4">
-              <p className="text-center text-gray-500 text-sm">
-                {filteredProducts.length} товар{filteredProducts.length % 10 === 1 && filteredProducts.length !== 11 ? '' : filteredProducts.length % 10 >= 2 && filteredProducts.length % 10 <= 4 && (filteredProducts.length < 10 || filteredProducts.length > 20) ? 'а' : 'ов'} в каталоге
-              </p>
-            </div>
-
             {/* Фильтры-теги */}
-            <div>
-              <div className="flex gap-3 overflow-x-auto pb-2 px-1 scrollbar-hide">
+            <div className="mb-4 pt-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                    className={`px-4 py-2 rounded-[20px] text-[15px] font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                       selectedCategory === category.id
-                        ? 'bg-[#303030] text-white shadow-sm'
-                        : 'bg-white text-gray-600 hover:bg-gray-50 shadow-md hover:shadow-lg border border-gray-200'
+                        ? 'bg-[#303030] text-white'
+                        : 'bg-black/[0.04] text-[#303030] font-normal hover:bg-black/[0.08]'
                     }`}
                   >
                     {category.name}
@@ -383,50 +352,47 @@ export default function Catalog() {
               </div>
             </div>
 
-            {/* Переключатель вида отображения */}
-            <div className="mb-4">
-              <div className="bg-white rounded-lg p-1 shadow-sm border border-gray-200 flex w-full">
+            {/* Заголовок со счетчиком и переключателем вида */}
+            <div className="flex items-center justify-between mb-5 px-1">
+              <p className="text-[#8e8e93] text-[15px] font-medium tracking-tight">
+                {filteredProducts.length} товар{filteredProducts.length % 10 === 1 && filteredProducts.length !== 11 ? '' : filteredProducts.length % 10 >= 2 && filteredProducts.length % 10 <= 4 && (filteredProducts.length < 10 || filteredProducts.length > 20) ? 'а' : 'ов'}
+              </p>
+              
+              <div className="bg-black/5 rounded-full p-1 flex items-center">
                 <button
                   onClick={() => setViewMode('single')}
-                  className={`flex-1 p-3 rounded-md transition-all duration-200 flex items-center justify-center gap-2 ${
+                  className={`p-1.5 rounded-full transition-all duration-200 ${
                     viewMode === 'single'
-                      ? 'bg-gray-100 text-gray-700 shadow-sm'
-                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                      ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-[#303030]'
+                      : 'text-gray-400 hover:text-gray-600'
                   }`}
                   title="1 товар в ряд"
                 >
-                  <Image
-                    src="/si_window-line1.svg"
-                    alt="1 товар в ряд"
-                    width={20}
-                    height={20}
-                    className="w-5 h-5"
-                  />
-                  <span className="text-sm font-medium">1 в ряд</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                  </svg>
                 </button>
                 <button
                   onClick={() => setViewMode('double')}
-                  className={`flex-1 p-3 rounded-md transition-all duration-200 flex items-center justify-center gap-2 ${
+                  className={`p-1.5 rounded-full transition-all duration-200 ${
                     viewMode === 'double'
-                      ? 'bg-gray-100 text-gray-700 shadow-sm'
-                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                      ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-[#303030]'
+                      : 'text-gray-400 hover:text-gray-600'
                   }`}
                   title="2 товара в ряд"
                 >
-                  <Image
-                    src="/si_window-line.svg"
-                    alt="2 товара в ряд"
-                    width={20}
-                    height={20}
-                    className="w-5 h-5"
-                  />
-                  <span className="text-sm font-medium">2 в ряд</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                  </svg>
                 </button>
               </div>
             </div>
 
             {/* Сетка товаров */}
-            <div className={`grid gap-4 ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            <div className={`grid gap-x-3 gap-y-6 ${viewMode === 'single' ? 'grid-cols-1 mb-8' : 'grid-cols-2 mb-8'}`}>
               {filteredProducts.slice(0, displayedProductsCount).map((product) => (
                 <ProductCard 
                   key={product.id} 
@@ -438,22 +404,28 @@ export default function Catalog() {
 
             {/* Кнопка "Показать еще" */}
             {filteredProducts.length > displayedProductsCount && (
-              <div className="text-center mt-6">
+              <div className="text-center mt-6 mb-12">
                 <button
                   onClick={() => setDisplayedProductsCount(prev => prev + 6)}
-                  className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-3.5 bg-black/[0.04] rounded-2xl text-[15px] font-medium text-[#303030] hover:bg-black/[0.08] transition-colors w-full"
                 >
-                  Показать еще ({filteredProducts.length - displayedProductsCount} товаров)
+                  Показать еще ({filteredProducts.length - displayedProductsCount})
                 </button>
               </div>
             )}
 
             {filteredProducts.length === 0 && products.length > 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">В этой категории товары не найдены</p>
+              <div className="text-center py-20 px-4">
+                <div className="w-16 h-16 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <p className="text-[#303030] font-medium mb-1">Ничего не найдено</p>
+                <p className="text-[#8e8e93] text-sm mb-6">В этой категории пока нет товаров</p>
                 <button 
                   onClick={() => setSelectedCategory('all')}
-                  className="mt-2 text-[#303030] hover:underline text-sm"
+                  className="px-6 py-2.5 bg-black/[0.04] rounded-2xl text-[15px] font-medium text-[#303030] hover:bg-black/[0.08] transition-colors"
                 >
                   Показать все товары
                 </button>
@@ -461,23 +433,22 @@ export default function Catalog() {
             )}
 
             {products.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">Товары не найдены</p>
+              <div className="text-center py-20 px-4">
+                <div className="w-16 h-16 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <p className="text-[#303030] font-medium mb-1">Каталог пуст</p>
+                <p className="text-[#8e8e93] text-sm">Товары еще не добавлены</p>
               </div>
             )}
           </>
         )}
       </div>
       
-      {/* Скрытая ссылка на админку - по клику */}
-      <div 
-        className="text-center text-xs text-gray-400 mt-8 cursor-pointer select-none pb-4"
-        onClick={() => {
-          window.location.href = '/admin';
-        }}
-      >
-        Total Lookas
-      </div>
+      {/* Футер */}
+      <Footer />
 
       {/* Модальное окно профиля */}
       <ProfileModal
