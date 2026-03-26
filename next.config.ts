@@ -5,16 +5,15 @@ const nextConfig: NextConfig = {
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
   },
   eslint: {
-    // Игнорируем ESLint ошибки при сборке в продакшене
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // Игнорируем ошибки типов при сборке в продакшене
     ignoreBuildErrors: true,
   },
   serverExternalPackages: ['@prisma/client', 'prisma'],
+  // Next.js 16: Turbopack включён по умолчанию, явно объявляем конфиг
+  turbopack: {},
   webpack: (config) => {
-    // Исправляем проблемы с внешними модулями
     config.externals = [...config.externals, 'canvas', 'jsdom'];
     return config;
   },
