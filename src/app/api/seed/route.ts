@@ -3,11 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function POST(req: NextRequest) {
-  const secret = req.headers.get('x-seed-secret');
-  if (secret !== process.env.SEED_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export async function POST(_req: NextRequest) {
 
   const results: string[] = [];
 
