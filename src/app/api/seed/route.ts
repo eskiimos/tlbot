@@ -86,16 +86,6 @@ export async function POST(_req: NextRequest) {
     }
     results.push(`✅ Опции: ${baseOptions.length} × ${allProducts.length} товаров`);
 
-    // 4. Услуги
-    const services = [
-      { name: 'Дизайн изделия', slug: 'product-design', description: 'Разработка уникального дизайна для вашего изделия.', priceFrom: 1500000, priceTo: null, category: 'design', isActive: true },
-      { name: 'Дизайн дропа', slug: 'drop-design', description: 'Комплексная разработка дизайна для всего дропа (коллекции).', priceFrom: 5000000, priceTo: null, category: 'design', isActive: true },
-    ];
-    for (const s of services) {
-      await prisma.service.upsert({ where: { slug: s.slug }, update: s, create: s });
-    }
-    results.push(`✅ Услуги: ${services.length}`);
-
     return NextResponse.json({ ok: true, results });
   } catch (error) {
     console.error('Seed error:', error);
