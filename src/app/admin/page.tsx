@@ -38,39 +38,33 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8 p-8">
-        {/* Кнопка возврата в каталог */}
-        <div className="absolute top-4 left-4">
-          <button
-            onClick={() => router.push('/catalog')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span className="text-sm">Каталог</span>
-          </button>
-        </div>
+    <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        {/* Кнопка возврата */}
+        <button
+          onClick={() => router.push('/catalog')}
+          className="flex items-center gap-1.5 text-black/40 hover:text-[#303030] transition-colors mb-8"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          <span className="text-sm">Каталог</span>
+        </button>
 
-        <div>
-          <div className="mx-auto w-16 h-16 bg-[#303030] rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+        <div className="bg-white rounded-3xl border border-black/5 p-8">
+          <div className="mb-8">
+            <div className="w-12 h-12 bg-[#303030] rounded-2xl flex items-center justify-center mb-5">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-[#303030]">Total Lookas</h1>
+            <p className="text-sm text-black/40 mt-1">Панель управления</p>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-            Total Lookas
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            вход
-          </p>
-        </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-[#303030] mb-1.5">
                 Пароль
               </label>
               <input
@@ -80,28 +74,26 @@ export default function AdminLogin() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#303030] focus:border-[#303030]"
+                className="block w-full px-4 py-3 border border-black/10 rounded-xl text-sm placeholder-black/25 focus:outline-none focus:border-[#303030] transition-colors"
                 placeholder="Введите пароль"
               />
             </div>
-          </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
+            {error && (
+              <div className="border border-red-100 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
 
-          <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#303030] hover:bg-[#404040] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#303030] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-[#303030] text-white text-sm font-medium rounded-xl hover:bg-[#404040] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? 'Вход...' : 'Войти'}
             </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -55,23 +55,23 @@ interface Order {
 }
 
 const statusLabels = {
-  'NEW': '📝 Новая заявка',
-  'IN_PROGRESS': '⚙️ В обработке',
-  'DESIGN': '🎨 Дизайн',
-  'PRODUCTION': '🏭 Производство',
-  'READY': '✅ Готов',
-  'COMPLETED': '🎉 Завершен',
-  'CANCELLED': '❌ Отменен'
+  'NEW': 'Новая заявка',
+  'IN_PROGRESS': 'В обработке',
+  'DESIGN': 'Дизайн',
+  'PRODUCTION': 'Производство',
+  'READY': 'Готов',
+  'COMPLETED': 'Завершён',
+  'CANCELLED': 'Отменён'
 };
 
 const statusColors = {
-  'NEW': 'bg-blue-100 text-blue-800',
-  'IN_PROGRESS': 'bg-yellow-100 text-yellow-800',
-  'DESIGN': 'bg-purple-100 text-purple-800',
-  'PRODUCTION': 'bg-orange-100 text-orange-800',
-  'READY': 'bg-green-100 text-green-800',
-  'COMPLETED': 'bg-gray-100 text-gray-800',
-  'CANCELLED': 'bg-red-100 text-red-800'
+  'NEW': 'bg-blue-50 text-blue-700',
+  'IN_PROGRESS': 'bg-amber-50 text-amber-700',
+  'DESIGN': 'bg-violet-50 text-violet-700',
+  'PRODUCTION': 'bg-orange-50 text-orange-700',
+  'READY': 'bg-emerald-50 text-emerald-700',
+  'COMPLETED': 'bg-black/5 text-black/50',
+  'CANCELLED': 'bg-red-50 text-red-600'
 };
 
 export default function OrderDetails() {
@@ -273,10 +273,10 @@ export default function OrderDetails() {
 
   if (!isMounted || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#303030] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Загрузка заказа...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#303030] border-t-transparent mx-auto mb-3"></div>
+          <p className="text-sm text-black/40">Загрузка заказа...</p>
         </div>
       </div>
     );
@@ -284,37 +284,36 @@ export default function OrderDetails() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Заказ не найден</p>
+          <p className="text-sm text-black/40">Заказ не найден</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F7F7F7]">
       {/* Шапка */}
-      <div className="bg-white shadow">
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-black/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
+          <div className="flex justify-between items-center h-14">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => router.push('/admin/dashboard')}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                className="flex items-center gap-1.5 text-black/40 hover:text-[#303030] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="text-sm">Назад к заказам</span>
+                <span className="text-sm">Заказы</span>
               </button>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Заказ #{order.id.slice(-8)}
-              </h1>
+              <span className="text-black/20">/</span>
+              <span className="text-sm font-mono text-[#303030]">#{order.id.slice(-8)}</span>
             </div>
             <button
               onClick={logout}
-              className="text-gray-600 hover:text-gray-900 text-sm"
+              className="text-sm text-black/40 hover:text-[#303030] transition-colors"
             >
               Выйти
             </button>
@@ -322,23 +321,24 @@ export default function OrderDetails() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Основная информация */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
+
             {/* Информация о клиенте */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Информация о клиенте</h2>
+            <div className="bg-white border border-black/5 rounded-2xl p-6">
+              <h2 className="text-sm font-semibold text-[#303030] mb-4">Клиент</h2>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Имя</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{order.customerName}</dd>
+                  <dt className="text-xs text-black/40 mb-0.5">Имя</dt>
+                  <dd className="text-sm text-[#303030]">{order.customerName}</dd>
                 </div>
                 {order.customerEmail && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Email</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      <a href={`mailto:${order.customerEmail}`} className="text-blue-600 hover:text-blue-800">
+                    <dt className="text-xs text-black/40 mb-0.5">Email</dt>
+                    <dd className="text-sm">
+                      <a href={`mailto:${order.customerEmail}`} className="text-[#303030] underline underline-offset-2">
                         {order.customerEmail}
                       </a>
                     </dd>
@@ -346,9 +346,9 @@ export default function OrderDetails() {
                 )}
                 {order.customerPhone && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Телефон</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      <a href={`tel:${order.customerPhone}`} className="text-blue-600 hover:text-blue-800">
+                    <dt className="text-xs text-black/40 mb-0.5">Телефон</dt>
+                    <dd className="text-sm">
+                      <a href={`tel:${order.customerPhone}`} className="text-[#303030] underline underline-offset-2">
                         {order.customerPhone}
                       </a>
                     </dd>
@@ -356,14 +356,14 @@ export default function OrderDetails() {
                 )}
                 {order.customerCompany && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Компания</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{order.customerCompany}</dd>
+                    <dt className="text-xs text-black/40 mb-0.5">Компания</dt>
+                    <dd className="text-sm text-[#303030]">{order.customerCompany}</dd>
                   </div>
                 )}
                 {order.user && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Telegram</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
+                    <dt className="text-xs text-black/40 mb-0.5">Telegram</dt>
+                    <dd className="text-sm text-[#303030]">
                       @{order.user.username} ({order.user.firstName} {order.user.lastName})
                     </dd>
                   </div>
@@ -372,253 +372,218 @@ export default function OrderDetails() {
             </div>
 
             {/* Состав заказа */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Состав заказа</h2>
-              <div className="space-y-4">
+            <div className="bg-white border border-black/5 rounded-2xl p-6">
+              <h2 className="text-sm font-semibold text-[#303030] mb-4">Состав заказа</h2>
+              <div className="space-y-3">
                 {Array.isArray(order.items) ? order.items.map((item, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
+                  <div key={index} className="border border-black/5 rounded-xl p-4">
+                    <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         {item.image && (
-                          <img 
-                            src={item.image} 
-                            alt={item.productName || item.name || 'Товар'} 
-                            className="w-12 h-12 object-cover rounded"
+                          <img
+                            src={item.image}
+                            alt={item.productName || item.name || 'Товар'}
+                            className="w-12 h-14 object-cover rounded-lg"
                           />
                         )}
-                        <h3 className="font-medium text-gray-900">
-                          {item.productName || item.name || `Товар ${index + 1}`}
-                        </h3>
-                      </div>
-                      <span className="text-sm text-gray-500">
-                        {item.totalPrice ? (
-                          `${formatPrice(item.totalPrice)} (${item.quantity || 1} шт.)`
-                        ) : (
-                          `${formatPrice(item.pricePerUnit || item.basePrice || item.price || 0)} × ${item.quantity || 1} = ${formatPrice((item.pricePerUnit || item.basePrice || item.price || 0) * (item.quantity || 1))}`
-                        )}
-                      </span>
-                    </div>
-                    
-                    {/* Выбранные опции из optionsDetails */}
-                    {item.optionsDetails && item.optionsDetails.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium text-gray-700 mb-2">Выбранные опции:</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {item.optionsDetails.map((option, optionIndex) => (
-                            <div key={optionIndex} className="flex justify-between items-center bg-gray-50 px-2 py-1 rounded text-sm">
-                              <span className="text-gray-700">{option.name}</span>
-                              <span className="text-gray-900 font-medium">
-                                {option.price > 0 ? `+${formatPrice(option.price)}` : 'Базовая'}
-                              </span>
-                            </div>
-                          ))}
+                        <div>
+                          <p className="text-sm font-medium text-[#303030]">
+                            {item.productName || item.name || `Товар ${index + 1}`}
+                          </p>
+                          <p className="text-xs text-black/40 mt-0.5">{item.quantity || 1} шт.</p>
                         </div>
                       </div>
+                      <span className="text-sm font-semibold text-[#303030]">
+                        {item.totalPrice
+                          ? formatPrice(item.totalPrice)
+                          : formatPrice((item.pricePerUnit || item.basePrice || item.price || 0) * (item.quantity || 1))}
+                      </span>
+                    </div>
+
+                    {item.optionsDetails && item.optionsDetails.length > 0 && (
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        {item.optionsDetails.map((option, optionIndex) => (
+                          <div key={optionIndex} className="flex justify-between items-center bg-black/[0.03] px-3 py-1.5 rounded-lg text-xs">
+                            <span className="text-black/60">{option.name}</span>
+                            <span className="text-[#303030] font-medium">
+                              {option.price > 0 ? `+${formatPrice(option.price)}` : 'Базовая'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     )}
-                    
-                    {/* Выбранные опции из selectedOptions (если есть, но нет optionsDetails) */}
+
                     {!item.optionsDetails && item.selectedOptions && typeof item.selectedOptions === 'object' && Object.keys(item.selectedOptions).length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium text-gray-700 mb-1">Выбранные опции:</p>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          {Object.entries(item.selectedOptions).map(([key, value]) => (
-                            <li key={key} className="flex justify-between">
-                              <span className="capitalize">{key}:</span>
-                              <span>{String(value)}</span>
-                            </li>
-                          ))}
-                        </ul>
+                      <div className="mt-3 space-y-1">
+                        {Object.entries(item.selectedOptions).map(([key, value]) => (
+                          <div key={key} className="flex justify-between text-xs">
+                            <span className="text-black/40 capitalize">{key}</span>
+                            <span className="text-[#303030]">{String(value)}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
 
-                    {/* Комментарий к дизайну */}
                     {item.designComment && (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium text-gray-700">Пожелания к дизайну:</p>
-                        <p className="text-sm text-gray-600 mt-1">{item.designComment}</p>
+                      <div className="mt-3 p-3 bg-black/[0.03] rounded-lg">
+                        <p className="text-xs text-black/40 mb-1">Пожелания к дизайну</p>
+                        <p className="text-xs text-[#303030]">{item.designComment}</p>
                       </div>
                     )}
 
-                    {/* Файлы дизайна */}
                     {item.designFiles && item.designFiles.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium text-gray-700">Прикрепленные файлы:</p>
-                        <ul className="text-sm text-blue-600 mt-1 space-y-1">
-                          {item.designFiles.map((file, fileIndex) => (
-                            <li key={fileIndex}>
-                              <a href={file} target="_blank" rel="noopener noreferrer" className="hover:text-blue-800">
-                                📎 Файл {fileIndex + 1}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
+                      <div className="mt-2 space-y-1">
+                        {item.designFiles.map((file, fileIndex) => (
+                          <a key={fileIndex} href={file} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-xs text-[#303030] underline underline-offset-2">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                            Файл {fileIndex + 1}
+                          </a>
+                        ))}
                       </div>
                     )}
                   </div>
                 )) : (
-                  <p className="text-gray-500 text-center py-4">Товары не найдены</p>
+                  <p className="text-sm text-black/30 text-center py-4">Товары не найдены</p>
                 )}
               </div>
-              
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-medium text-gray-900">Итого:</span>
-                  <span className="text-xl font-bold text-gray-900">{formatPrice(order.totalAmount)}</span>
-                </div>
+
+              <div className="mt-5 pt-4 border-t border-black/5 flex justify-between items-center">
+                <span className="text-sm font-medium text-black/40">Итого</span>
+                <span className="text-lg font-bold text-[#303030]">{formatPrice(order.totalAmount)}</span>
               </div>
             </div>
           </div>
 
           {/* Боковая панель */}
-          <div className="space-y-6">
-            {/* Статус и управление */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Управление заказом</h2>
-              
-              <div className="space-y-4">
+          <div className="space-y-4">
+            {/* Управление заказом */}
+            <div className="bg-white border border-black/5 rounded-2xl p-5">
+              <h2 className="text-sm font-semibold text-[#303030] mb-4">Управление</h2>
+
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Текущий статус
-                  </label>
-                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${statusColors[order.status as keyof typeof statusColors]}`}>
+                  <p className="text-xs text-black/40 mb-1.5">Текущий статус</p>
+                  <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-lg ${statusColors[order.status as keyof typeof statusColors]}`}>
                     {statusLabels[order.status as keyof typeof statusLabels]}
                   </span>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Изменить статус
-                  </label>
+                  <label className="block text-xs text-black/40 mb-1.5">Изменить статус</label>
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#303030] focus:border-[#303030]"
+                    className="w-full px-3 py-2.5 border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#303030] transition-colors"
                   >
                     {Object.entries(statusLabels).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Комментарий для клиента
-                  </label>
+                  <label className="block text-xs text-black/40 mb-1.5">Комментарий</label>
                   <textarea
                     value={adminComment}
                     onChange={(e) => setAdminComment(e.target.value)}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#303030] focus:border-[#303030]"
-                    placeholder="Дополнительная информация для клиента..."
+                    rows={3}
+                    className="w-full px-3 py-2.5 border border-black/10 rounded-xl text-sm placeholder-black/25 focus:outline-none focus:border-[#303030] resize-none transition-colors"
+                    placeholder="Дополнительная информация..."
                   />
                 </div>
 
                 <button
                   onClick={updateOrderStatus}
                   disabled={isUpdating || (newStatus === order.status && adminComment === (order.adminComment || ''))}
-                  className="w-full bg-[#303030] text-white px-4 py-2 rounded-md hover:bg-[#404040] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[#303030] text-white text-sm font-medium py-3 rounded-xl hover:bg-[#404040] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isUpdating ? 'Сохранение...' : 'Сохранить изменения'}
+                  {isUpdating ? 'Сохранение...' : 'Сохранить'}
                 </button>
               </div>
             </div>
 
             {/* Информация о заказе */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Информация о заказе</h2>
+            <div className="bg-white border border-black/5 rounded-2xl p-5">
+              <h2 className="text-sm font-semibold text-[#303030] mb-4">Детали</h2>
               <dl className="space-y-3">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">ID заказа</dt>
-                  <dd className="mt-1 text-sm text-gray-900 font-mono">{order.id}</dd>
+                  <dt className="text-xs text-black/40">ID заказа</dt>
+                  <dd className="text-xs text-[#303030] font-mono mt-0.5 break-all">{order.id}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Дата создания</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{formatDate(order.createdAt)}</dd>
+                  <dt className="text-xs text-black/40">Создан</dt>
+                  <dd className="text-xs text-[#303030] mt-0.5">{formatDate(order.createdAt)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Последнее обновление</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{formatDate(order.updatedAt)}</dd>
+                  <dt className="text-xs text-black/40">Обновлён</dt>
+                  <dd className="text-xs text-[#303030] mt-0.5">{formatDate(order.updatedAt)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Количество товаров</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{order.items.length} позиц{order.items.length === 1 ? 'ия' : 'ии'}</dd>
+                  <dt className="text-xs text-black/40">Позиций</dt>
+                  <dd className="text-xs text-[#303030] mt-0.5">{order.items.length}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Общая сумма</dt>
-                  <dd className="mt-1 text-lg font-bold text-gray-900">{formatPrice(order.totalAmount)}</dd>
+                <div className="pt-2 border-t border-black/5">
+                  <dt className="text-xs text-black/40">Сумма</dt>
+                  <dd className="text-base font-bold text-[#303030] mt-0.5">{formatPrice(order.totalAmount)}</dd>
                 </div>
               </dl>
             </div>
 
-            {/* Текущий комментарий */}
-            {order.adminComment && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-yellow-800 mb-2">Текущий комментарий:</h3>
-                <p className="text-sm text-yellow-700">{order.adminComment}</p>
-              </div>
-            )}
+            {/* Переписка */}
+            <div className="bg-white border border-black/5 rounded-2xl p-5">
+              <h2 className="text-sm font-semibold text-[#303030] mb-4">Переписка</h2>
 
-            {/* Система комментариев */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">💬 Переписка по заказу</h3>
-              
-              {/* Список комментариев */}
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 mb-4">
                 {comments.length === 0 ? (
-                  <p className="text-gray-500 text-sm">Пока нет комментариев</p>
+                  <p className="text-xs text-black/30">Нет сообщений</p>
                 ) : (
                   comments.map((comment) => (
-                    <div key={comment.id} className={`p-3 rounded-lg ${
-                      comment.isAdmin 
-                        ? 'bg-blue-50 border border-blue-200 ml-8' 
-                        : 'bg-gray-50 border border-gray-200 mr-8'
+                    <div key={comment.id} className={`p-3 rounded-xl text-xs ${
+                      comment.isAdmin
+                        ? 'bg-[#303030] text-white ml-4'
+                        : 'bg-black/[0.04] text-[#303030] mr-4'
                     }`}>
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-sm font-medium text-gray-900">
-                          {comment.isAdmin ? `👨‍💼 ${comment.authorName || 'Администратор'}` : '👤 Клиент'}
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className={`font-medium ${ comment.isAdmin ? 'text-white/70' : 'text-black/40' }`}>
+                          {comment.isAdmin ? comment.authorName || 'Администратор' : 'Клиент'}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className={comment.isAdmin ? 'text-white/40' : 'text-black/30'}>
                           {formatDate(comment.createdAt)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                      <p className="whitespace-pre-wrap leading-relaxed">{comment.content}</p>
                     </div>
                   ))
                 )}
               </div>
 
-              {/* Форма для нового комментария */}
-              <div className="border-t border-gray-200 pt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Написать сообщение
-                </label>
+              <div className="border-t border-black/5 pt-4 space-y-2">
                 <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Введите сообщение..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Напишите сообщение..."
+                  className="w-full px-3 py-2.5 border border-black/10 rounded-xl text-sm placeholder-black/25 focus:outline-none focus:border-[#303030] resize-none transition-colors"
                   rows={3}
                 />
-                <div className="mt-3 flex justify-end space-x-3">
+                <div className="flex gap-2">
                   <button
                     onClick={addComment}
                     disabled={!newComment.trim() || isAddingComment || isSendingToClient}
-                    className="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className="flex-1 py-2.5 border border-black/10 text-xs font-medium text-[#303030] rounded-xl hover:bg-black/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    {isAddingComment ? 'Добавление...' : '💬 Внутренний комментарий'}
+                    {isAddingComment ? 'Добавление...' : 'Внутренний'}
                   </button>
                   <button
                     onClick={sendToClient}
                     disabled={!newComment.trim() || isAddingComment || isSendingToClient}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className="flex-1 py-2.5 bg-[#303030] text-white text-xs font-medium rounded-xl hover:bg-[#404040] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    {isSendingToClient ? 'Отправка...' : '📱 Отправить клиенту'}
+                    {isSendingToClient ? 'Отправка...' : 'Клиенту'}
                   </button>
                 </div>
-                <p className="mt-2 text-xs text-gray-500">
-                  💬 Внутренний комментарий - только для администраторов<br/>
-                  📱 Отправить клиенту - сообщение придет в Telegram и сохранится в переписке
-                </p>
               </div>
             </div>
           </div>
