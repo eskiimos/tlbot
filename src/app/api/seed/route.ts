@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function POST(_req: NextRequest) {
 
@@ -102,7 +100,5 @@ export async function POST(_req: NextRequest) {
   } catch (error) {
     console.error('Seed error:', error);
     return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
