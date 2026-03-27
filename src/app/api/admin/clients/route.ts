@@ -1,14 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
 
-async function checkAuth() {
-  const cookieStore = await cookies();
-  return cookieStore.get('admin_session')?.value === 'authenticated';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+function checkAuth(request: NextRequest): boolean {
+  const token = request.cookies.get('admin-token')?.value;
+  if (!token) return false;
+  try {
+    jwt.verify(token, JWT_SECRET);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-export async function GET() {
-  if (!(await checkAuth())) {
+export async function GET(request: NextRequest) {
+  if (!checkAuth(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
