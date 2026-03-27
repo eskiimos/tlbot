@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import AdminNav from '@/components/AdminNav';
 
 interface Order {
   id: string;
@@ -137,30 +138,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F7F7F7]">
-      {/* Заголовок */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-black/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 bg-[#303030] rounded-lg flex items-center justify-center">
-                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-[#303030]">Total Lookas</span>
-                <span className="text-sm text-black/30 ml-2">Заказы</span>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-black/40 hover:text-[#303030] transition-colors"
-            >
-              Выйти
-            </button>
-          </div>
-        </div>
-      </div>
+      <AdminNav onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Статистика */}

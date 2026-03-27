@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import AdminNav from '@/components/AdminNav';
 
 interface OrderItem {
   id?: string;
@@ -294,34 +295,17 @@ export default function OrderDetails() {
 
   return (
     <div className="min-h-screen bg-[#F7F7F7]">
-      {/* Шапка */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-black/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => router.push('/admin/dashboard')}
-                className="flex items-center gap-1.5 text-black/40 hover:text-[#303030] transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span className="text-sm">Заказы</span>
-              </button>
-              <span className="text-black/20">/</span>
-              <span className="text-sm font-mono text-[#303030]">#{order.id.slice(-8)}</span>
-            </div>
-            <button
-              onClick={logout}
-              className="text-sm text-black/40 hover:text-[#303030] transition-colors"
-            >
-              Выйти
-            </button>
-          </div>
+      <AdminNav onLogout={logout} />
+      {/* Breadcrumb */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="flex items-center gap-2 text-sm">
+          <button onClick={() => router.push('/admin/dashboard')} className="text-black/40 hover:text-[#303030] transition-colors">Заказы</button>
+          <span className="text-black/20">/</span>
+          <span className="font-mono text-[#303030]">#{order.id.slice(-8)}</span>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Основная информация */}
           <div className="lg:col-span-2 space-y-4">
